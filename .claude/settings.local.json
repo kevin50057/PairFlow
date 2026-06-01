@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(pnpm -v)",
+      "Bash(bun -v)",
+      "Bash(java -version)",
+      "Bash(docker -v)",
+      "Bash(psql --version)",
+      "Bash(git --version)",
+      "Bash(xcodebuild -version)",
+      "Bash(git init *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm --filter @thunder/api prisma:generate)",
+      "Bash(pnpm --filter @thunder/api exec tsc --noEmit -p tsconfig.json)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(pnpm --filter @thunder/api exec prisma migrate dev --name init)",
+      "Bash(pnpm --filter @thunder/api start)",
+      "Bash(curl -sf --retry 40 --retry-delay 1 --retry-connrefused http://localhost:3000/api/v1/health)",
+      "Bash(echo \"health exit: $?\")"
+    ]
+  }
+}

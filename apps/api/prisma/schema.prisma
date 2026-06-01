@@ -1,0 +1,138 @@
+// 雷評 / 踩雷餐廳 — Prisma schema
+//
+// Dev uses SQLite for zero-setup local development. The schema is written to be
+// Postgres-ready: to move to production, change `provider` to "postgresql",
+// point DATABASE_URL at Postgres, and (optionally) promote the string status
+// fields to native enums. No model shape changes required.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Status / role values are kept as plain strings so the same schema runs on
+// SQLite (which has no native enums) and Postgres. Allowed values are enforced
+// in the application layer (see src/common/enums.ts).
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  nickname     String
+  avatarUrl    String?
+  role         String   @default("USER") // USER | ADMIN
+  status       String   @default("ACTIVE") // ACTIVE | SUSPENDED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reviews Review[]
+  reports Report[]
+
+  @@map("users")
+}
+
+model Restaurant {
+  id                  Int      @id @default(autoincrement())
+  externalPlaceId     String?
+  name                String
+  address             String
+  latitude            Float
+  longitude           Float
+  phone               String?
+  category            String?
+  city                String?
+  district            String?
+  coverImageUrl       String?
+  averageThunderScore Float    @default(0) // decimal(2,1) in Postgres
+  reviewCount         Int      @default(0)
+  status              String   @default("ACTIVE") // ACTIVE | HIDDEN | CLOSED
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  reviews Review[]
+
+  @@index([name])
+  @@index([latitude, longitude])
+  @@index([externalPlaceId])
+  @@map("restaurants")
+}
+
+model Review {
+  id           Int       @id @default(autoincrement())
+  restaurantId Int
+  userId       Int
+  thunderScore Int // 1..5
+  title        String?
+  content      String
+  visitDate    DateTime?
+  status       String    @default("PUBLISHED") // PUBLISHED | HIDDEN | REPORTED | DELETED
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  restaurant Restaurant     @relation(fields: [restaurantId], references: [id])
+  user       User           @relation(fields: [userId], references: [id])
+  tags       ReviewTagRel[]
+  images     ReviewImage[]
+
+  // One active review per (restaurant, user) for MVP. User edits in place.
+  @@unique([restaurantId, userId])
+  @@index([restaurantId])
+  @@map("reviews")
+}
+
+model ReviewTag {
+  id        Int    @id @default(autoincrement())
+  code      String @unique
+  label     String
+  sortOrder Int    @default(0)
+
+  reviews ReviewTagRel[]
+
+  @@map("review_tags")
+}
+
+model ReviewTagRel {
+  reviewId    Int
+  reviewTagId Int
+
+  review    Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reviewTag ReviewTag @relation(fields: [reviewTagId], references: [id])
+
+  @@id([reviewId, reviewTagId])
+  @@map("review_tag_rel")
+}
+
+model ReviewImage {
+  id        Int      @id @default(autoincrement())
+  reviewId  Int
+  fileUrl   String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@map("review_images")
+}
+
+model Report {
+  id             Int      @id @default(autoincrement())
+  targetType     String   @default("REVIEW") // REVIEW
+  targetId       Int
+  reporterUserId Int
+  reasonCode     String // ABUSE | SPAM | FAKE | SEXUAL_VIOLENT | IRRELEVANT
+  note           String?
+  status         String   @default("PENDING") // PENDING | RESOLVED | REJECTED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  reporter User @relation(fields: [reporterUserId], references: [id])
+
+  @@index([targetType, targetId])
+  @@index([status])
+  @@map("reports")
+}
