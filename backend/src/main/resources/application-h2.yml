@@ -1,0 +1,17 @@
+# Zero-setup fallback profile: file-based H2, schema via Hibernate (no Flyway).
+# Activate with:  mvn spring-boot:run -Dspring-boot.run.profiles=h2
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/pairflow;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+  flyway:
+    enabled: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
