@@ -32,7 +32,7 @@ import { Album, Photo } from '../../core/models';
 
       <div class="section-title">照片時間軸</div>
       @if (!photos().length) {
-        <div class="empty">還沒有照片，上傳第一張一起的回憶吧 📷</div>
+        <div class="empty"><span class="emoji">📷</span>還沒有照片<br />上傳第一張一起的回憶吧</div>
       } @else {
         <div class="grid3">
           @for (p of photos(); track p.id) {

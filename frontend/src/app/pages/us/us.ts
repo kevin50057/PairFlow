@@ -1,12 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CoupleStore } from '../../core/couple';
+import { Auth } from '../../core/auth';
+import { initial } from '../../core/labels';
 
 @Component({
   selector: 'pf-us',
   imports: [RouterLink],
   template: `
-    <div class="appbar"><h1>我們</h1></div>
+    <div class="appbar">
+      <h1>我們 <span class="heart-doodle">💞</span></h1>
+      <div class="couple-ava"><span class="ava a">{{ meInitial() }}</span><span class="ava b">{{ partnerInitial() }}</span></div>
+    </div>
     <div class="screen stack">
       <div class="card card-warm center-text">
         @if (couple.couple(); as c) {
@@ -32,6 +37,9 @@ import { CoupleStore } from '../../core/couple';
 })
 export class UsPage {
   couple = inject(CoupleStore);
+  auth = inject(Auth);
+  meInitial() { return initial(this.auth.user()?.displayName); }
+  partnerInitial() { return initial(this.couple.couple()?.partner?.displayName); }
   links = [
     { path: '/us/wishlist', icon: '🎆', label: '未來一起做的事' },
     { path: '/us/mood', icon: '💗', label: '心情' },

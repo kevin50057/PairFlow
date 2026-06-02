@@ -4,7 +4,8 @@ import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
 import { Home, Todo, Wish } from '../../core/models';
-import { MOOD } from '../../core/labels';
+import { MOOD, initial } from '../../core/labels';
+import { NotificationStore } from '../../core/notifications';
 
 @Component({
   selector: 'pf-home',
@@ -12,12 +13,15 @@ import { MOOD } from '../../core/labels';
   template: `
     <div class="appbar">
       <div>
-        <h1>Hi {{ auth.user()?.displayName }} <span style="font-size:1rem">❤️</span></h1>
+        <h1>Hi {{ auth.user()?.displayName }} <span style="font-size:1.1rem">❤️</span></h1>
         @if (home()?.couple?.daysTogether != null) {
-          <div class="muted small">你們在一起第 <b style="color:var(--primary-ink)">{{ home()!.couple.daysTogether }}</b> 天</div>
+          <div class="subtitle">你們在一起第 <b style="color:var(--primary-ink)">{{ home()!.couple.daysTogether }}</b> 天</div>
         }
       </div>
-      <a routerLink="/us/notifications" class="avatar">🔔</a>
+      <div class="row" style="gap:10px">
+        <a routerLink="/us/notifications" class="bell">🔔@if (notif.unread() > 0) { <span class="bell-badge">{{ notif.unread() }}</span> }</a>
+        <div class="couple-ava"><span class="ava a">{{ meInitial() }}</span><span class="ava b">{{ partnerInitial() }}</span></div>
+      </div>
     </div>
 
     <div class="screen stack">
@@ -122,6 +126,7 @@ export class HomePage implements OnInit {
   private api = inject(Api);
   auth = inject(Auth);
   couple = inject(CoupleStore);
+  notif = inject(NotificationStore);
 
   home = signal<Home | null>(null);
   nudges = signal<string[]>([]);
@@ -132,7 +137,11 @@ export class HomePage implements OnInit {
     await this.reload();
     this.loadNudges();
     this.loadWishes();
+    this.notif.refresh();
   }
+
+  meInitial() { return initial(this.auth.user()?.displayName); }
+  partnerInitial() { return initial(this.couple.couple()?.partner?.displayName); }
 
   async reload() {
     this.loading.set(true);

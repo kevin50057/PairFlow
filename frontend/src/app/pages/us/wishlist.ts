@@ -27,7 +27,7 @@ import { WISH_CATEGORY } from '../../core/labels';
         </div>
       }
 
-      @if (!wishes().length) { <div class="empty">列下你們想一起做的事吧 ✨<br />一起看煙火、一起看極光、一起去那家店…</div> }
+      @if (!wishes().length) { <div class="empty"><span class="emoji">🎆</span>列下你們想一起做的事<br />一起看煙火、一起看極光、一起去那家店…</div> }
       @for (w of wishes(); track w.id) {
         <div class="card">
           <div class="between">

@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
+import { NotificationStore } from '../../core/notifications';
 import { DailyQuestionModal } from '../../shared/daily-question-modal';
 
 @Component({
@@ -16,13 +17,14 @@ import { DailyQuestionModal } from '../../shared/daily-question-modal';
       <a routerLink="/todos" routerLinkActive="active"><span class="ic">📝</span>任務</a>
       <a routerLink="/calendar" routerLinkActive="active"><span class="ic">📅</span>行事曆</a>
       <a routerLink="/memories" routerLinkActive="active"><span class="ic">📷</span>回憶</a>
-      <a routerLink="/us" routerLinkActive="active"><span class="ic">💞</span>我們</a>
+      <a routerLink="/us" routerLinkActive="active"><span class="ic">💞</span>我們@if (notif.unread() > 0) { <span class="nav-dot"></span> }</a>
     </nav>
   `,
 })
 export class ShellPage implements OnInit {
   private auth = inject(Auth);
   private couple = inject(CoupleStore);
+  notif = inject(NotificationStore);
 
   async ngOnInit() {
     if (!this.auth.user()) {
@@ -31,5 +33,6 @@ export class ShellPage implements OnInit {
     if (!this.couple.couple()) {
       try { await this.couple.load(); } catch { /* ignore */ }
     }
+    this.notif.refresh();
   }
 }

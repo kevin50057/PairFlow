@@ -29,7 +29,7 @@ import { NoteItem } from '../../core/models';
         </div>
       }
 
-      @if (!notes().length) { <div class="empty">還沒有紙條，寫第一張給對方吧 ✉️</div> }
+      @if (!notes().length) { <div class="empty"><span class="emoji">💌</span>還沒有紙條<br />寫第一張給對方吧</div> }
       @for (n of notes(); track n.id) {
         <div class="card">
           <div class="between">

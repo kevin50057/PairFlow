@@ -14,9 +14,11 @@ import { MOOD, REACTION } from '../../core/labels';
     <div class="screen stack">
       <div class="card">
         <div class="section-title" style="margin-top:0">今天的你？</div>
-        <div class="row wrap">
+        <div class="mood-grid">
           @for (m of moods; track m[0]) {
-            <span class="chip" [class.active]="picked === m[0]" (click)="picked = m[0]">{{ m[1].emoji }} {{ m[1].label }}</span>
+            <button class="mood-btn" [class.sel]="picked === m[0]" (click)="picked = m[0]">
+              <span class="e">{{ m[1].emoji }}</span><span class="l">{{ m[1].label }}</span>
+            </button>
           }
         </div>
         <textarea class="textarea" style="margin-top:10px;min-height:60px" placeholder="想說一句話…（選填）" name="note" [(ngModel)]="note"></textarea>
@@ -33,8 +35,8 @@ import { MOOD, REACTION } from '../../core/labels';
             <div class="row"><span style="font-size:1.8rem">{{ emoji(p.mood) }}</span>
               <div class="grow"><b>{{ label(p.mood) }}</b>@if (p.note) { <div class="muted small">{{ p.note }}</div> }</div>
             </div>
-            <div class="row wrap" style="margin-top:10px">
-              @for (r of reactions; track r[0]) { <button class="chip" (click)="react(r[0])">{{ r[1] }}</button> }
+            <div class="row wrap" style="margin-top:12px">
+              @for (r of reactions; track r[0]) { <button class="react-pill" (click)="react(r[0])">{{ r[1] }}</button> }
             </div>
             @if (p.reactions.length) {
               <div class="tiny muted" style="margin-top:8px">你回應了：{{ reactionList(p.reactions) }}</div>

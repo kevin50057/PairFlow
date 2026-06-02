@@ -58,7 +58,7 @@ import { initial } from '../../core/labels';
       @if (loading()) {
         <div class="empty">載入中…</div>
       } @else if (!todos().length) {
-        <div class="empty">這個分頁還沒有任務 ✨<br />點右下角 ＋ 新增一件一起完成的事</div>
+        <div class="empty"><span class="emoji">💗</span>這個分頁還沒有任務<br />點右下角 ＋ 新增一件一起完成的事</div>
       } @else {
         <div class="card">
           <div class="between">

@@ -41,7 +41,7 @@ import { Expense, ExpenseSummary } from '../../core/models';
         </div>
       }
 
-      @if (!expenses().length) { <div class="empty">還沒有記錄，輕鬆記一筆吧 💰</div> }
+      @if (!expenses().length) { <div class="empty"><span class="emoji">💰</span>還沒有記錄<br />輕鬆記一筆吧</div> }
       @for (e of expenses(); track e.id) {
         <div class="card">
           <div class="between">

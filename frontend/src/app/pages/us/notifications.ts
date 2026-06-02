@@ -15,7 +15,7 @@ const TYPE_LABEL: Record<string, string> = {
       <button class="btn btn-ghost btn-sm" (click)="markAll()">全部已讀</button>
     </div>
     <div class="screen stack">
-      @if (!items().length) { <div class="empty">目前沒有通知 🔔</div> }
+      @if (!items().length) { <div class="empty"><span class="emoji">🔔</span>目前沒有通知</div> }
       @for (n of items(); track n.id) {
         <div class="card" [style.opacity]="n.isRead ? 0.6 : 1" (click)="markRead(n)" style="cursor:pointer">
           <div class="between">
