@@ -20,7 +20,7 @@ import { NotificationStore } from '../../core/notifications';
       </div>
       <div class="row" style="gap:10px">
         <a routerLink="/us/notifications" class="bell">🔔@if (notif.unread() > 0) { <span class="bell-badge">{{ notif.unread() }}</span> }</a>
-        <div class="couple-ava"><span class="ava a">{{ meInitial() }}</span><span class="ava b">{{ partnerInitial() }}</span></div>
+        <span class="couple-cartoon" style="font-size:2rem">💑</span>
       </div>
     </div>
 

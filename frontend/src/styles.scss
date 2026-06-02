@@ -220,3 +220,6 @@ p { margin: 0 0 .5rem; }
 /* keep filter chips on a single line */
 .chip { white-space: nowrap; }
 .chip-row { padding-bottom: 6px; }
+
+/* cartoon couple illustration (used instead of initial avatars) */
+.couple-cartoon { flex: none; line-height: 1; font-size: 2.6rem; }

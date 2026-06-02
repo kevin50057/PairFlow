@@ -26,7 +26,7 @@ import { WISH_CATEGORY, initial } from '../../core/labels';
             <div style="font-weight:800;font-size:1.05rem">願望清單 <span style="color:var(--primary-deep)">{{ completed() }}</span> / {{ total() }} 已完成</div>
             <div class="subtitle small">一起把想做的事慢慢完成 ♡</div>
           </div>
-          <div class="couple-ava"><span class="ava a">{{ meInitial() }}</span><span class="ava b">{{ partnerInitial() }}</span></div>
+          <span class="couple-cartoon" style="font-size:3rem">💑</span>
         </div>
         <div class="row" style="margin-top:14px;gap:10px">
           <div class="progress-track grow"><div class="progress-fill" [style.width.%]="pct()"></div></div>

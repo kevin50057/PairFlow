@@ -10,7 +10,7 @@ import { initial } from '../../core/labels';
   template: `
     <div class="appbar">
       <h1>我們 <span class="heart-doodle">💞</span></h1>
-      <div class="couple-ava"><span class="ava a">{{ meInitial() }}</span><span class="ava b">{{ partnerInitial() }}</span></div>
+      <span class="couple-cartoon" style="font-size:2rem">💑</span>
     </div>
     <div class="screen stack">
       <div class="card card-warm center-text">
