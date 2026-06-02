@@ -9,6 +9,8 @@ import com.pairflow.mood.dto.CreateMoodRequest;
 import com.pairflow.mood.dto.MoodResponse;
 import com.pairflow.mood.dto.ReactionResponse;
 import com.pairflow.mood.dto.TodayMoodResponse;
+import com.pairflow.notification.NotificationService;
+import com.pairflow.notification.NotificationType;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,13 +26,16 @@ public class MoodService {
     private final MoodEntryRepository moodRepository;
     private final MoodReactionRepository reactionRepository;
     private final CoupleContext coupleContext;
+    private final NotificationService notificationService;
 
     public MoodService(MoodEntryRepository moodRepository,
                        MoodReactionRepository reactionRepository,
-                       CoupleContext coupleContext) {
+                       CoupleContext coupleContext,
+                       NotificationService notificationService) {
         this.moodRepository = moodRepository;
         this.reactionRepository = reactionRepository;
         this.coupleContext = coupleContext;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -44,7 +49,12 @@ public class MoodService {
         entry.setEmoji(req.emoji());
         entry.setNote(req.note());
         entry.setNeedResponse(Boolean.TRUE.equals(req.needResponse()));
-        return toResponse(moodRepository.save(entry));
+        MoodEntry saved = moodRepository.save(entry);
+        if (saved.isNeedResponse()) {
+            notificationService.notify(couple.getId(), couple.partnerOf(me), NotificationType.MOOD,
+                    "對方想被回應", "對方今天分享了心情，想聽聽你的回應", "MOOD", saved.getId());
+        }
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)

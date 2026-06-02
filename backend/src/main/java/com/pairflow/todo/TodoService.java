@@ -5,6 +5,8 @@ import com.pairflow.common.error.ApiException;
 import com.pairflow.common.util.AppTime;
 import com.pairflow.couple.Couple;
 import com.pairflow.couple.CoupleContext;
+import com.pairflow.notification.NotificationService;
+import com.pairflow.notification.NotificationType;
 import com.pairflow.todo.dto.AddChecklistItemRequest;
 import com.pairflow.todo.dto.AddCommentRequest;
 import com.pairflow.todo.dto.ChecklistItemResponse;
@@ -30,17 +32,20 @@ public class TodoService {
     private final TodoCommentRepository commentRepository;
     private final TodoMapper mapper;
     private final CoupleContext coupleContext;
+    private final NotificationService notificationService;
 
     public TodoService(TodoRepository todoRepository,
                        TodoChecklistItemRepository checklistRepository,
                        TodoCommentRepository commentRepository,
                        TodoMapper mapper,
-                       CoupleContext coupleContext) {
+                       CoupleContext coupleContext,
+                       NotificationService notificationService) {
         this.todoRepository = todoRepository;
         this.checklistRepository = checklistRepository;
         this.commentRepository = commentRepository;
         this.mapper = mapper;
         this.coupleContext = coupleContext;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -123,6 +128,10 @@ public class TodoService {
                 checklistRepository.save(item);
             }
         }
+        if (partnerId.equals(t.getAssigneeUserId())) {
+            notificationService.notify(couple.getId(), partnerId, NotificationType.TODO_CREATED,
+                    "新任務", "對方建立了「" + t.getTitle() + "」", "TODO", t.getId());
+        }
         return mapper.toResponse(t, me, true);
     }
 
@@ -167,6 +176,8 @@ public class TodoService {
         String me = coupleContext.currentUserId();
         Todo t = loadVisible(id, couple.getId(), me);
         applyStatus(t, TodoStatus.DONE);
+        notificationService.notify(couple.getId(), couple.partnerOf(me), NotificationType.TODO_COMPLETED,
+                "任務完成", "對方完成了「" + t.getTitle() + "」", "TODO", t.getId());
         return mapper.toResponse(t, me, true);
     }
 

@@ -5,6 +5,8 @@ import com.pairflow.couple.Couple;
 import com.pairflow.couple.CoupleContext;
 import com.pairflow.note.dto.CreateNoteRequest;
 import com.pairflow.note.dto.NoteResponse;
+import com.pairflow.notification.NotificationService;
+import com.pairflow.notification.NotificationType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +18,13 @@ public class NoteService {
 
     private final NoteRepository repository;
     private final CoupleContext coupleContext;
+    private final NotificationService notificationService;
 
-    public NoteService(NoteRepository repository, CoupleContext coupleContext) {
+    public NoteService(NoteRepository repository, CoupleContext coupleContext,
+                       NotificationService notificationService) {
         this.repository = repository;
         this.coupleContext = coupleContext;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -47,7 +52,12 @@ public class NoteService {
         n.setBackgroundStyle(req.backgroundStyle());
         n.setImageUrl(req.imageUrl());
         n.setUnlockTime(req.unlockTime());
-        return NoteResponse.from(repository.save(n), Instant.now());
+        Note saved = repository.save(n);
+        if (saved.getUnlockTime() == null) {
+            notificationService.notify(couple.getId(), partnerId, NotificationType.NOTE,
+                    "新的小紙條", "對方寫了一張小紙條給你", "NOTE", saved.getId());
+        }
+        return NoteResponse.from(saved, Instant.now());
     }
 
     @Transactional(readOnly = true)
