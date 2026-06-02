@@ -57,6 +57,12 @@ public final class TodoSpecifications {
         };
     }
 
+    /** Tasks with no deadline ("想到再做"). */
+    public static Specification<Todo> undated(Boolean undated) {
+        return (root, query, cb) ->
+                Boolean.TRUE.equals(undated) ? cb.isNull(root.get("dueDate")) : cb.conjunction();
+    }
+
     public static Specification<Todo> assignee(AssigneeOption option, String viewerId, String partnerId) {
         if (option == null) {
             return (root, query, cb) -> cb.conjunction();

@@ -20,7 +20,7 @@ aggregated **daily home dashboard**.
 | Frontend | **Angular 21** (standalone components, signals, lazy routes) · mobile-first SCSS theme |
 | Backend | **Java 21 · Spring Boot 3.4** (Web · Security · Data JPA · Validation) |
 | Auth | **JWT** (HS256, `jjwt`) · BCrypt · stateless · HTTP interceptor on the client |
-| DB | **H2** (file-based, zero-setup dev) — **Postgres-ready** (driver bundled, portable schema) |
+| DB | **PostgreSQL 16 + Flyway** migrations (`ddl-auto=validate`). **H2** retained as a zero-setup fallback profile |
 | AI | Pluggable provider — deterministic **stub** by default, **Anthropic Claude** when configured |
 | Build | Maven (API) · Angular CLI / esbuild (web) |
 
@@ -58,18 +58,29 @@ pairflow/
 
 ## Quick start
 
-**Prerequisites:** JDK 21 + Maven, and Node ≥ 20. No Docker/DB needed for dev.
+**Prerequisites:** JDK 21 + Maven, Node ≥ 20, and PostgreSQL 16.
 
 ```bash
-# 1) API  → http://localhost:8080
+# 0) PostgreSQL (macOS / Homebrew — no Docker needed)
+brew install postgresql@16 && brew services start postgresql@16
+createdb pairflow
+psql -d pairflow -c "CREATE ROLE pairflow LOGIN PASSWORD 'pairflow'; \
+  ALTER DATABASE pairflow OWNER TO pairflow; ALTER SCHEMA public OWNER TO pairflow;"
+
+# 1) API  → http://localhost:8080   (Flyway runs the migrations on boot)
 cd backend && mvn spring-boot:run
 
 # 2) Web  → http://localhost:4200   (in another terminal)
 cd frontend && npm install && npm start
 ```
 
-Open **http://localhost:4200**, register two accounts, pair them with an invite code, and you're in.
-The H2 console is at `http://localhost:8080/h2-console` (JDBC `jdbc:h2:file:./data/pairflow`, user `sa`).
+Open **http://localhost:4200** and sign in with the seeded demo account
+**kevin@pairflow.test / secret123** (or register two accounts and pair them with an invite code).
+
+**No Postgres handy?** Run the API on the zero-setup **H2** fallback profile instead:
+```bash
+cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=h2   # H2 console at /h2-console
+```
 
 ### Optional: real AI
 By default the AI features use an offline stub. To use Claude:
@@ -118,11 +129,12 @@ every response carries an `x-request-id`.
 
 ## Status
 
-**Complete and verified end-to-end** (backend via curl, web via browser): auth · couple pairing ·
-todo · anniversary · calendar · mood · notes · album · home aggregate · questions · wishlist ·
-finance · date planner · repair · AI assistant · notifications · Angular UI (5 tabs + onboarding).
+**Complete and verified end-to-end** (backend via curl, web via browser): auth (JWT + refresh) ·
+couple pairing · todo (incl. timeless "想到再做") · anniversary · calendar · mood · notes · album ·
+home aggregate · questions · "未來一起做的事" · finance · date planner · repair · AI assistant ·
+notifications · data export · two-step breakup · **PostgreSQL + Flyway** · Angular UI (5 tabs + onboarding).
 
-**Next (productionization):** Flyway migrations · Postgres + object storage · refresh tokens ·
-real FCM push · Capacitor wrapper for native iOS/Android.
+**Next (productionization):** object-storage adapter for photos · real FCM credentials ·
+Capacitor wrapper for native iOS/Android · automated test suite.
 
 Built from the product spec — a **Couple OS**, not another chat app.

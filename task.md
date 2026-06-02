@@ -46,12 +46,14 @@
 
 ---
 
-## 🔧 進行中
-- [ ] **DB 改為 PostgreSQL + Flyway migration**（取代 H2 的 `ddl-auto=update`，解決 enum schema 演進問題）
+## ✅ 本輪新增（你提的）
+- [x] **DB 改為 PostgreSQL 16 + Flyway**（`V1__init.sql`、`ddl-auto=validate`；保留 H2 fallback profile）— 徹底解決 enum schema 演進問題
+- [x] **無期限任務分頁** — Todo 新增「想到再做」分頁（後端 `GET /todos?undated=true`），沒有截止時間的任務變一等公民（也仍可設時間）
+- [x] **「未來一起做的事」** — 願望清單改名為「未來一起做的事」、移到「我們」頁最上方，並在**首頁加卡片**（例：一起看煙火、一起去看極光）
 
 ---
 
-## 💡 Backlog / 想加的功能（你提的）
-- [ ] **無期限任務視圖** — Todo 已支援「沒有截止時間」（`dueDate` 可空），但 UI 預設是今天/本週分頁，會把無日期的藏起來 → 想加一個「想到再做 / 無期限」分頁讓它變一等公民。
-- [ ] **「未來一起做的事」** — 目前 **願望清單(Wishlist)** 就是這個（spec 7.12「記錄想一起做的事情」，例如一起看煙火都放這）。可考慮：把它改名/放更顯眼，或拆成獨立的 bucket list。
-- [ ] （可選）改 Postgres 後：單元/整合測試、Capacitor 包成 iOS/Android。
+## 💡 Backlog（之後可做）
+- [ ] 照片改 S3 相容物件儲存、接真實 FCM 金鑰
+- [ ] 單元 / 整合測試
+- [ ] Capacitor 包成 iOS / Android

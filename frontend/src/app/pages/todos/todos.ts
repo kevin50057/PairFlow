@@ -74,7 +74,7 @@ export class TodosPage implements OnInit {
   private api = inject(Api);
 
   tabs: [string, string][] = [
-    ['today', '今天'], ['week', '本週'], ['DATE', '約會'], ['TRAVEL', '旅行'],
+    ['today', '今天'], ['week', '本週'], ['undated', '想到再做'], ['DATE', '約會'], ['TRAVEL', '旅行'],
     ['HOUSEWORK', '家務'], ['GOAL', '目標'], ['done', '已完成'], ['all', '全部'],
   ];
   tab = signal('today');
@@ -100,6 +100,7 @@ export class TodosPage implements OnInit {
     const plus = (days: number) => { const d = new Date(start); d.setDate(d.getDate() + days); return d; };
     if (t === 'today') return { dueFrom: iso(start), dueTo: iso(plus(1)) };
     if (t === 'week') return { dueFrom: iso(start), dueTo: iso(plus(7)) };
+    if (t === 'undated') return { undated: 'true' };
     if (t === 'done') return { status: 'DONE' };
     if (['DATE', 'TRAVEL', 'HOUSEWORK', 'GOAL'].includes(t)) return { type: t };
     return {};

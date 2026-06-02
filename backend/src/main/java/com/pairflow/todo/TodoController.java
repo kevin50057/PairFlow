@@ -43,8 +43,9 @@ public class TodoController {
             @RequestParam(required = false) AssigneeOption assignee,
             @RequestParam(required = false) String dueFrom,
             @RequestParam(required = false) String dueTo,
-            @RequestParam(required = false) String keyword) {
-        return todoService.list(status, type, assignee, parseInstant(dueFrom), parseInstant(dueTo), keyword);
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean undated) {
+        return todoService.list(status, type, assignee, parseInstant(dueFrom), parseInstant(dueTo), keyword, undated);
     }
 
     @PostMapping

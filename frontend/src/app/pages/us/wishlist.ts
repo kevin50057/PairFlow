@@ -9,7 +9,7 @@ import { WISH_CATEGORY } from '../../core/labels';
   selector: 'pf-wishlist',
   imports: [FormsModule],
   template: `
-    <div class="appbar"><button class="back" (click)="loc.back()">‹</button><h1 style="font-size:1.1rem">願望清單</h1>
+    <div class="appbar"><button class="back" (click)="loc.back()">‹</button><h1 style="font-size:1.1rem">未來一起做的事</h1>
       <button class="btn btn-ghost btn-sm" (click)="show.set(!show())">＋ 新增</button>
     </div>
     <div class="screen stack">
@@ -27,7 +27,7 @@ import { WISH_CATEGORY } from '../../core/labels';
         </div>
       }
 
-      @if (!wishes().length) { <div class="empty">列下你們想一起做的事吧 ⭐</div> }
+      @if (!wishes().length) { <div class="empty">列下你們想一起做的事吧 ✨<br />一起看煙火、一起看極光、一起去那家店…</div> }
       @for (w of wishes(); track w.id) {
         <div class="card">
           <div class="between">

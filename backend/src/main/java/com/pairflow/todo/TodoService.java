@@ -50,7 +50,7 @@ public class TodoService {
 
     @Transactional(readOnly = true)
     public List<TodoResponse> list(TodoStatus status, TodoType type, AssigneeOption assignee,
-                                   Instant dueFrom, Instant dueTo, String keyword) {
+                                   Instant dueFrom, Instant dueTo, String keyword, Boolean undated) {
         Couple couple = coupleContext.requireCouple();
         String me = coupleContext.currentUserId();
         String partnerId = couple.partnerOf(me);
@@ -63,6 +63,7 @@ public class TodoService {
                 .and(TodoSpecifications.assignee(assignee, me, partnerId))
                 .and(TodoSpecifications.dueFrom(dueFrom))
                 .and(TodoSpecifications.dueTo(dueTo))
+                .and(TodoSpecifications.undated(undated))
                 .and(TodoSpecifications.keyword(keyword));
 
         return todoRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "createdAt"))

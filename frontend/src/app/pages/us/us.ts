@@ -33,10 +33,10 @@ import { CoupleStore } from '../../core/couple';
 export class UsPage {
   couple = inject(CoupleStore);
   links = [
+    { path: '/us/wishlist', icon: '🎆', label: '未來一起做的事' },
     { path: '/us/mood', icon: '💗', label: '心情' },
     { path: '/us/notes', icon: '✉️', label: '小紙條' },
     { path: '/us/questions', icon: '❓', label: '每日問答' },
-    { path: '/us/wishlist', icon: '⭐', label: '願望清單' },
     { path: '/us/dates', icon: '🗺️', label: '約會規劃' },
     { path: '/us/finance', icon: '💰', label: '記帳' },
     { path: '/us/repair', icon: '🕊️', label: '吵架修復' },

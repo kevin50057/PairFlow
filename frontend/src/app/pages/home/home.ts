@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
-import { Home, Todo } from '../../core/models';
+import { Home, Todo, Wish } from '../../core/models';
 import { MOOD } from '../../core/labels';
 
 @Component({
@@ -104,6 +104,16 @@ import { MOOD } from '../../core/labels';
             @for (n of nudges(); track n) { <p class="small" style="margin:4px 0">💡 {{ n }}</p> }
           </div>
         }
+
+        <a class="card card-warm" routerLink="/us/wishlist" style="display:block">
+          <div class="between"><div class="section-title" style="margin-top:0">未來一起做的事</div><span class="link small">查看</span></div>
+          @if (wishes().length) {
+            @for (w of wishes().slice(0, 3); track w.id) { <div class="row"><span>🎆</span><span>{{ w.title }}</span></div> }
+            @if (wishes().length > 3) { <div class="tiny muted" style="margin-top:4px">還有 {{ wishes().length - 3 }} 件…</div> }
+          } @else {
+            <p class="muted small" style="margin:0">一起看煙火、一起看極光… 列下你們想一起做的事 ✨</p>
+          }
+        </a>
       }
     </div>
   `,
@@ -115,11 +125,13 @@ export class HomePage implements OnInit {
 
   home = signal<Home | null>(null);
   nudges = signal<string[]>([]);
+  wishes = signal<Wish[]>([]);
   loading = signal(true);
 
   async ngOnInit() {
     await this.reload();
     this.loadNudges();
+    this.loadWishes();
   }
 
   async reload() {
@@ -134,6 +146,12 @@ export class HomePage implements OnInit {
   async loadNudges() {
     try {
       this.nudges.set((await this.api.get<{ items: string[] }>('/ai/nudges')).items);
+    } catch { /* non-critical */ }
+  }
+
+  async loadWishes() {
+    try {
+      this.wishes.set(await this.api.get<Wish[]>('/wishes', { status: 'ACTIVE' }));
     } catch { /* non-critical */ }
   }
 
