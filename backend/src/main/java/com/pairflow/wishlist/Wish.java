@@ -40,6 +40,10 @@ public class Wish extends BaseEntity {
     private String location;
     private String link;
 
+    /** Free-text target time, e.g. "2026 冬天完成" / "2025 Q3 完成". */
+    @Column(length = 100)
+    private String targetNote;
+
     @Column(nullable = false)
     private String addedBy;
 

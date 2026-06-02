@@ -14,6 +14,7 @@ public record WishResponse(
         Double estimatedCost,
         String location,
         String link,
+        String targetNote,
         String addedBy,
         String status,
         String convertedTodoId,
@@ -23,7 +24,7 @@ public record WishResponse(
     public static WishResponse from(Wish w) {
         return new WishResponse(w.getId(), w.getCoupleId(), w.getTitle(), w.getDescription(),
                 w.getCategory().name(), w.getPriority().name(), w.getEstimatedCost(), w.getLocation(),
-                w.getLink(), w.getAddedBy(), w.getStatus().name(), w.getConvertedTodoId(),
+                w.getLink(), w.getTargetNote(), w.getAddedBy(), w.getStatus().name(), w.getConvertedTodoId(),
                 w.getCompletedAt(), w.getCreatedAt());
     }
 }

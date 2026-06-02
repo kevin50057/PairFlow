@@ -12,6 +12,7 @@ public record CreateWishRequest(
         Priority priority,
         Double estimatedCost,
         String location,
-        String link
+        String link,
+        String targetNote
 ) {
 }

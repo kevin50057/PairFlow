@@ -13,6 +13,7 @@ public record UpdateWishRequest(
         WishStatus status,
         Double estimatedCost,
         String location,
-        String link
+        String link,
+        String targetNote
 ) {
 }

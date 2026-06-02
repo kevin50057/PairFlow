@@ -57,6 +57,7 @@ public class WishService {
         w.setEstimatedCost(req.estimatedCost());
         w.setLocation(req.location());
         w.setLink(req.link());
+        w.setTargetNote(req.targetNote());
         w.setAddedBy(me);
         w.setStatus(WishStatus.ACTIVE);
         return WishResponse.from(repository.save(w));
@@ -72,6 +73,7 @@ public class WishService {
         if (req.estimatedCost() != null) w.setEstimatedCost(req.estimatedCost());
         if (req.location() != null) w.setLocation(req.location());
         if (req.link() != null) w.setLink(req.link());
+        if (req.targetNote() != null) w.setTargetNote(req.targetNote());
         if (req.status() != null) applyStatus(w, req.status());
         return WishResponse.from(w);
     }
