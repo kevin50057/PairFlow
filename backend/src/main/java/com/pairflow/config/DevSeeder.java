@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
 /**
- * Seeds a demo couple (Kevin + 映珊) with a little content on a fresh database, so the
+ * Seeds a demo couple (Kevin + 魚丸) with a little content on a fresh database, so the
  * app is explorable immediately. Runs only when no users exist. Disable with
  * {@code pairflow.seed-demo=false}.
  */
@@ -63,7 +63,7 @@ public class DevSeeder implements ApplicationRunner {
         log.info("Seeding demo couple (kevin@pairflow.test / ying@pairflow.test, password: secret123)");
 
         User kevin = user("kevin@pairflow.test", "Kevin");
-        User ying = user("ying@pairflow.test", "映珊");
+        User ying = user("ying@pairflow.test", "魚丸");
         userRepository.save(kevin);
         userRepository.save(ying);
 
@@ -76,7 +76,7 @@ public class DevSeeder implements ApplicationRunner {
         String coupleId = couple.getId();
 
         anniversaryRepository.save(anniversary(coupleId, kevin.getId(), "交往紀念日", LocalDate.of(2025, 5, 11)));
-        anniversaryRepository.save(anniversary(coupleId, kevin.getId(), "映珊生日", LocalDate.of(1996, 6, 13)));
+        anniversaryRepository.save(anniversary(coupleId, kevin.getId(), "魚丸生日", LocalDate.of(1996, 6, 13)));
 
         Todo todo = new Todo();
         todo.setCoupleId(coupleId);
