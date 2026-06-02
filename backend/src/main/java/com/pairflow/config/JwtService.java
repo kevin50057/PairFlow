@@ -19,12 +19,12 @@ import java.util.Map;
 public class JwtService {
 
     private final SecretKey key;
-    private final long expirationHours;
+    private final long accessExpirationHours;
 
     public JwtService(@Value("${pairflow.jwt.secret}") String secret,
-                      @Value("${pairflow.jwt.expiration-hours}") long expirationHours) {
+                      @Value("${pairflow.jwt.access-expiration-hours:1}") long accessExpirationHours) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expirationHours = expirationHours;
+        this.accessExpirationHours = accessExpirationHours;
     }
 
     public String issue(String userId, String email) {
@@ -33,7 +33,7 @@ public class JwtService {
                 .subject(userId)
                 .claims(Map.of("email", email))
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(expirationHours, ChronoUnit.HOURS)))
+                .expiration(Date.from(now.plus(accessExpirationHours, ChronoUnit.HOURS)))
                 .signWith(key)
                 .compact();
     }

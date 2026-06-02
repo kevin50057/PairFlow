@@ -14,4 +14,7 @@ public interface TodoRepository extends JpaRepository<Todo, String>, JpaSpecific
 
     long countByCoupleIdAndStatusInAndDueDateBetween(
             String coupleId, List<TodoStatus> statuses, Instant from, Instant to);
+
+    /** Used by the scheduler to find globally due todos across all couples. */
+    List<Todo> findByStatusAndDueDateBetween(TodoStatus status, Instant from, Instant to);
 }

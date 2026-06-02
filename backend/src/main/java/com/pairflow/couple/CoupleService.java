@@ -1,12 +1,17 @@
 package com.pairflow.couple;
 
+import com.pairflow.audit.AuditAction;
+import com.pairflow.audit.AuditService;
 import com.pairflow.common.error.ApiException;
 import com.pairflow.common.error.ErrorCode;
 import com.pairflow.common.util.AppTime;
-import com.pairflow.couple.dto.BreakupRequest;
+import com.pairflow.couple.dto.BreakupPendingResponse;
 import com.pairflow.couple.dto.CoupleResponse;
 import com.pairflow.couple.dto.CreateInviteResponse;
+import com.pairflow.couple.dto.InitiateBreakupRequest;
 import com.pairflow.couple.dto.UpdateCoupleRequest;
+import com.pairflow.notification.NotificationService;
+import com.pairflow.notification.NotificationType;
 import com.pairflow.user.User;
 import com.pairflow.user.UserRepository;
 import com.pairflow.user.dto.UserResponse;
@@ -17,29 +22,37 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class CoupleService {
 
-    // No ambiguous characters (no I, L, O, 0, 1).
     private static final String CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
     private static final int CODE_LENGTH = 8;
     private static final long INVITE_TTL_DAYS = 7;
+    private static final long BREAKUP_TTL_DAYS = 7;
 
     private final CoupleRepository coupleRepository;
     private final CoupleInviteRepository inviteRepository;
+    private final PendingBreakupRepository pendingBreakupRepository;
     private final UserRepository userRepository;
+    private final AuditService auditService;
+    private final NotificationService notificationService;
     private final SecureRandom random = new SecureRandom();
 
     public CoupleService(CoupleRepository coupleRepository,
                          CoupleInviteRepository inviteRepository,
-                         UserRepository userRepository) {
+                         PendingBreakupRepository pendingBreakupRepository,
+                         UserRepository userRepository,
+                         AuditService auditService,
+                         NotificationService notificationService) {
         this.coupleRepository = coupleRepository;
         this.inviteRepository = inviteRepository;
+        this.pendingBreakupRepository = pendingBreakupRepository;
         this.userRepository = userRepository;
+        this.auditService = auditService;
+        this.notificationService = notificationService;
     }
 
     // ---- pairing ---------------------------------------------------------
@@ -47,7 +60,6 @@ public class CoupleService {
     @Transactional
     public CreateInviteResponse createInvite(String userId) {
         requireNotCoupled(userId, "You are already in a couple");
-
         Optional<CoupleInvite> existing =
                 inviteRepository.findFirstByInviterUserIdAndStatusOrderByCreatedAtDesc(userId, InviteStatus.PENDING);
         Instant now = Instant.now();
@@ -55,7 +67,6 @@ public class CoupleService {
             CoupleInvite inv = existing.get();
             return new CreateInviteResponse(inv.getCode(), inv.getExpiresAt());
         }
-
         CoupleInvite invite = new CoupleInvite();
         invite.setCode(generateUniqueCode());
         invite.setInviterUserId(userId);
@@ -69,7 +80,6 @@ public class CoupleService {
     public CoupleResponse join(String userId, String rawCode) {
         CoupleInvite invite = inviteRepository.findByCode(normalizeCode(rawCode))
                 .orElseThrow(() -> ApiException.notFound("Invite code not found"));
-
         if (invite.getStatus() != InviteStatus.PENDING || invite.getExpiresAt().isBefore(Instant.now())) {
             throw ApiException.conflict("Invite code is no longer valid");
         }
@@ -90,6 +100,7 @@ public class CoupleService {
         invite.setAcceptedByUserId(userId);
         invite.setCoupleId(couple.getId());
 
+        auditService.log(userId, couple.getId(), AuditAction.COUPLE_JOIN, "COUPLE", couple.getId(), null);
         return toResponse(couple, userId);
     }
 
@@ -100,7 +111,6 @@ public class CoupleService {
         return toResponse(requireActiveCouple(userId), userId);
     }
 
-    /** Used by every couple-scoped module to resolve & authorize the caller's couple. */
     @Transactional(readOnly = true)
     public Couple requireActiveCouple(String userId) {
         return coupleRepository.findByStatusAndMember(CoupleStatus.ACTIVE, userId)
@@ -116,27 +126,102 @@ public class CoupleService {
         return toResponse(couple, userId);
     }
 
+    // ---- breakup (two-step, spec 7.1 / 9.3) -----------------------------
+
     @Transactional
-    public Map<String, Object> breakup(String coupleId, String userId, BreakupRequest req) {
-        if (req.confirm() == null || !req.confirm()) {
-            throw ApiException.badRequest("Breakup requires explicit confirmation");
-        }
+    public BreakupPendingResponse initiateBreakup(String coupleId, String userId, InitiateBreakupRequest req) {
         Couple couple = loadMember(coupleId, userId);
         if (couple.getStatus() == CoupleStatus.ENDED) {
             throw ApiException.conflict("This couple space has already ended");
         }
+        // Check no existing pending request
+        pendingBreakupRepository
+                .findFirstByCoupleIdAndCancelledFalseAndConfirmedFalseOrderByCreatedAtDesc(coupleId)
+                .ifPresent(pb -> {
+                    if (pb.getExpiresAt().isAfter(Instant.now())) {
+                        throw ApiException.conflict("A breakup request is already pending");
+                    }
+                });
+
+        PendingBreakup pb = new PendingBreakup();
+        pb.setCoupleId(coupleId);
+        pb.setInitiatorId(userId);
+        pb.setDataHandling(req.dataHandling() != null ? req.dataHandling() : DataHandling.ARCHIVE);
+        pb.setExpiresAt(Instant.now().plus(BREAKUP_TTL_DAYS, ChronoUnit.DAYS));
+        pendingBreakupRepository.save(pb);
+
+        // Notify the other partner
+        String partnerId = couple.partnerOf(userId);
+        notificationService.notify(coupleId, partnerId, NotificationType.BREAKUP_REQUESTED,
+                "解除綁定請求", "你的伴侶發出了解除綁定請求，請在 7 天內確認或等待自動取消。",
+                "COUPLE", coupleId);
+
+        auditService.log(userId, coupleId, AuditAction.COUPLE_BREAKUP_INITIATE, "COUPLE", coupleId, null);
+        return BreakupPendingResponse.from(pb);
+    }
+
+    @Transactional
+    public Map<String, Object> confirmBreakup(String coupleId, String userId) {
+        Couple couple = loadMember(coupleId, userId);
+        if (couple.getStatus() == CoupleStatus.ENDED) {
+            throw ApiException.conflict("This couple space has already ended");
+        }
+        PendingBreakup pb = pendingBreakupRepository
+                .findFirstByCoupleIdAndCancelledFalseAndConfirmedFalseOrderByCreatedAtDesc(coupleId)
+                .orElseThrow(() -> ApiException.notFound("No pending breakup request"));
+        if (pb.getExpiresAt().isBefore(Instant.now())) {
+            throw ApiException.conflict("Breakup request has expired");
+        }
+        if (pb.getInitiatorId().equals(userId)) {
+            throw ApiException.badRequest("The initiator cannot confirm their own breakup request; the partner must confirm");
+        }
+
+        pb.setConfirmed(true);
+        pb.setConfirmedAt(Instant.now());
+        pb.setConfirmedById(userId);
+
         couple.setStatus(CoupleStatus.ENDED);
         couple.setEndedAt(Instant.now());
-        couple.setDataHandling(req.dataHandling() != null ? req.dataHandling() : DataHandling.ARCHIVE);
+        couple.setDataHandling(pb.getDataHandling());
 
-        // Shared-data export/deletion per the chosen option is handled by a follow-up
-        // routine (see PrivacyService) so each member can also keep a personal copy.
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("ok", true);
-        result.put("coupleId", coupleId);
-        result.put("status", couple.getStatus().name());
-        result.put("dataHandling", couple.getDataHandling().name());
-        return result;
+        notificationService.notify(coupleId, pb.getInitiatorId(), NotificationType.BREAKUP_CONFIRMED,
+                "解除綁定完成", "你的伴侶確認了解除綁定。感謝你們曾經一起走過的日子。",
+                "COUPLE", coupleId);
+
+        auditService.log(userId, coupleId, AuditAction.COUPLE_BREAKUP_CONFIRM, "COUPLE", coupleId, null);
+        return Map.of("ok", true, "coupleId", coupleId, "status", "ENDED",
+                "dataHandling", pb.getDataHandling().name());
+    }
+
+    @Transactional
+    public Map<String, Object> cancelBreakup(String coupleId, String userId) {
+        loadMember(coupleId, userId);
+        PendingBreakup pb = pendingBreakupRepository
+                .findFirstByCoupleIdAndCancelledFalseAndConfirmedFalseOrderByCreatedAtDesc(coupleId)
+                .orElseThrow(() -> ApiException.notFound("No pending breakup request"));
+        if (!pb.getInitiatorId().equals(userId)) {
+            throw ApiException.forbidden("Only the initiator can cancel the breakup request");
+        }
+        pb.setCancelled(true);
+        pb.setCancelledAt(Instant.now());
+
+        Couple couple = coupleRepository.findById(coupleId).orElseThrow();
+        String partnerId = couple.partnerOf(userId);
+        notificationService.notify(coupleId, partnerId, NotificationType.BREAKUP_CANCELLED,
+                "解除綁定取消", "解除綁定請求已被取消。",
+                "COUPLE", coupleId);
+
+        auditService.log(userId, coupleId, AuditAction.COUPLE_BREAKUP_CANCEL, "COUPLE", coupleId, null);
+        return Map.of("ok", true, "cancelled", true);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<BreakupPendingResponse> getBreakupStatus(String coupleId, String userId) {
+        loadMember(coupleId, userId);
+        return pendingBreakupRepository
+                .findFirstByCoupleIdAndCancelledFalseAndConfirmedFalseOrderByCreatedAtDesc(coupleId)
+                .filter(pb -> pb.getExpiresAt().isAfter(Instant.now()))
+                .map(BreakupPendingResponse::from);
     }
 
     // ---- helpers ---------------------------------------------------------

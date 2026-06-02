@@ -100,7 +100,7 @@ public class AnniversaryService {
     }
 
     /** Next occurrence on/after today for repeating dates; the date itself otherwise. */
-    static LocalDate nextOccurrence(LocalDate base, RepeatType repeatType) {
+    public static LocalDate nextOccurrence(LocalDate base, RepeatType repeatType) {
         LocalDate today = AppTime.today();
         return switch (repeatType) {
             case NONE -> base;

@@ -10,7 +10,7 @@ export interface User {
   createdAt: string;
 }
 
-export interface AuthResponse { token: string; user: User; }
+export interface AuthResponse { token: string; refreshToken: string; user: User; }
 
 export interface Couple {
   id: string;

@@ -2,6 +2,8 @@ package com.pairflow.auth;
 
 import com.pairflow.auth.dto.AuthResponse;
 import com.pairflow.auth.dto.LoginRequest;
+import com.pairflow.auth.dto.LogoutRequest;
+import com.pairflow.auth.dto.RefreshRequest;
 import com.pairflow.auth.dto.RegisterRequest;
 import com.pairflow.config.CurrentUser;
 import com.pairflow.user.UserService;
@@ -37,9 +39,15 @@ public class AuthController {
         return authService.login(req);
     }
 
+    /** Exchanges a valid refresh token for a new access + refresh token pair (token rotation). */
+    @PostMapping("/refresh")
+    public AuthResponse refresh(@Valid @RequestBody RefreshRequest req) {
+        return authService.refresh(req.refreshToken());
+    }
+
     @PostMapping("/logout")
-    public Map<String, Object> logout() {
-        // Stateless JWT: logout is client-side (drop the token). Endpoint exists for symmetry.
+    public Map<String, Object> logout(@RequestBody(required = false) LogoutRequest req) {
+        authService.logout(req != null ? req.refreshToken() : null);
         return Map.of("ok", true);
     }
 

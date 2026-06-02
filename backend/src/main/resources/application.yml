@@ -35,7 +35,7 @@ server:
 pairflow:
   jwt:
     secret: ${PAIRFLOW_JWT_SECRET:dev-secret-change-me-please-use-a-long-random-value-0123456789abcdef}
-    expiration-hours: 168       # 7 days
+    access-expiration-hours: 1        # access token: 1 hour; refresh token is 30 days (RefreshToken entity)
   cors:
     allowed-origins: http://localhost:4200,http://localhost:5173
   storage:
@@ -45,6 +45,10 @@ pairflow:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:}
       model: claude-opus-4-8
+  push:
+    fcm:
+      # Uncomment to activate FcmPushSender (LoggingPushSender is used when absent)
+      # service-account-file: ${PAIRFLOW_FCM_SA_FILE:}
 
 logging:
   level:

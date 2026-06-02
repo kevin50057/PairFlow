@@ -1,0 +1,15 @@
+package com.pairflow.audit;
+
+public enum AuditAction {
+    REGISTER,
+    LOGIN,
+    LOGOUT,
+    COUPLE_JOIN,
+    COUPLE_BREAKUP_INITIATE,
+    COUPLE_BREAKUP_CONFIRM,
+    COUPLE_BREAKUP_CANCEL,
+    DATA_EXPORT,
+    TODO_DELETE,
+    PHOTO_DELETE,
+    NOTE_DELETE
+}

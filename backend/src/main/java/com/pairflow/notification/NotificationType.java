@@ -11,5 +11,8 @@ public enum NotificationType {
     MOOD,
     EVENT,
     DAILY_QUESTION,
-    AI_NUDGE
+    AI_NUDGE,
+    BREAKUP_REQUESTED,
+    BREAKUP_CONFIRMED,
+    BREAKUP_CANCELLED
 }
