@@ -115,3 +115,39 @@ p { margin: 0 0 .5rem; }
   border-radius: 50%; background: var(--primary); color: #fff; border: none; font-size: 1.6rem; box-shadow: var(--shadow); cursor: pointer; z-index: 40; }
 .notice { background: #fff6ec; border: 1px solid var(--primary-soft); color: var(--primary-ink); border-radius: 12px; padding: 12px; font-size: .85rem; }
 .tag { background: var(--surface-2); border-radius: 8px; padding: 2px 8px; font-size: .72rem; color: var(--muted); }
+
+/* ── daily-question modal ───────────────────────────────────── */
+.dq-backdrop { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(58, 51, 46, .45); backdrop-filter: blur(5px); animation: dq-fade .2s ease; }
+.dq-card { position: relative; width: 100%; max-width: 380px; padding: 28px 22px 22px;
+  background: linear-gradient(165deg, #ffffff, var(--surface-2)); border-radius: 26px;
+  box-shadow: 0 26px 60px rgba(150, 90, 50, .30); animation: dq-pop .3s cubic-bezier(.2, .9, .3, 1.25); }
+.dq-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: .95rem; color: var(--muted); cursor: pointer; }
+.dq-eyebrow { font-size: .82rem; font-weight: 700; letter-spacing: .04em; color: var(--primary-ink); }
+.dq-q { font-size: 1.4rem; line-height: 1.45; margin: 8px 0 18px; }
+.dq-input { min-height: 92px; margin-bottom: 12px; }
+.dq-hint { font-size: .72rem; color: var(--muted); text-align: center; margin-top: 12px; }
+.dq-wait { text-align: center; font-weight: 600; padding: 12px 0 18px; }
+.dq-reveal { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.dq-ans { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+.dq-ans.partner { background: var(--primary-soft); border-color: transparent; }
+.dq-who { display: block; font-size: .72rem; color: var(--muted); margin-bottom: 3px; }
+@keyframes dq-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dq-pop { from { opacity: 0; transform: translateY(18px) scale(.95); } to { opacity: 1; transform: none; } }
+
+/* ── visual polish ──────────────────────────────────────────── */
+.btn-primary { background: linear-gradient(135deg, #f4965f, var(--primary)); box-shadow: 0 6px 16px rgba(236, 127, 73, .32); }
+.btn-primary:hover { filter: brightness(1.03); transform: translateY(-1px); }
+.card { box-shadow: 0 10px 26px rgba(170, 110, 65, .10), 0 1px 2px rgba(170, 110, 65, .05); }
+.card-warm { background: linear-gradient(160deg, #fff4ea, #ffffff); }
+.hero-day { background: linear-gradient(120deg, var(--primary-ink), #e2933f); -webkit-background-clip: text;
+  background-clip: text; -webkit-text-fill-color: transparent; }
+.section-title { letter-spacing: .06em; }
+.fab { background: linear-gradient(135deg, #f4965f, var(--primary)); box-shadow: 0 12px 26px rgba(236, 127, 73, .42); transition: transform .12s; }
+.fab:hover { transform: translateY(-2px); }
+.bottomnav { box-shadow: 0 -6px 20px rgba(170, 110, 65, .06); }
+.bottomnav a.active .ic { transform: translateY(-1px) scale(1.08); }
+.chip { transition: transform .06s; }
+.chip:active { transform: scale(.95); }
+.screen .card { animation: rise .32s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

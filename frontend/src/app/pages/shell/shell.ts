@@ -2,12 +2,14 @@ import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
+import { DailyQuestionModal } from '../../shared/daily-question-modal';
 
 @Component({
   selector: 'pf-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, DailyQuestionModal],
   template: `
     <router-outlet />
+    <pf-daily-question />
     <nav class="bottomnav">
       <a routerLink="/home" routerLinkActive="active"><span class="ic">🏠</span>首頁</a>
       <a routerLink="/todos" routerLinkActive="active"><span class="ic">📝</span>任務</a>
