@@ -63,9 +63,8 @@ import { initial } from '../../core/labels';
         <div class="card">
           <div class="between">
             <h3 style="margin:0">{{ tabLabel() }}</h3>
-            <span class="script">一起努力的每一天都很甜 🩷</span>
+            @if (tab() === 'today') { <span class="tiny" style="color:var(--primary-ink)">📅 {{ todayLabel }}</span> }
           </div>
-          @if (tab() === 'today') { <div class="tiny" style="color:var(--primary-ink);margin-top:4px">📅 {{ todayLabel }}</div> }
           <hr class="dashed" />
           <div class="pill-list">
             @for (t of todos(); track t.id) {
