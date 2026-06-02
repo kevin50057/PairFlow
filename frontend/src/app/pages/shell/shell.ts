@@ -8,6 +8,7 @@ import { DailyQuestionModal } from '../../shared/daily-question-modal';
   selector: 'pf-shell',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, DailyQuestionModal],
   template: `
+    <div class="bg-hearts"><span>💗</span><span>🩷</span><span>💕</span></div>
     <router-outlet />
     <pf-daily-question />
     <nav class="bottomnav">

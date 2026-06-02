@@ -2,22 +2,37 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Api } from '../../core/api';
+import { Auth } from '../../core/auth';
+import { CoupleStore } from '../../core/couple';
 import { Todo } from '../../core/models';
+import { initial } from '../../core/labels';
 
 @Component({
   selector: 'pf-todos',
   imports: [FormsModule, RouterLink],
   template: `
-    <div class="appbar"><h1>任務</h1></div>
-    <div class="screen-pad-sm">
-      <div class="chip-row">
+    <div class="appbar">
+      <div>
+        <h1>我們的任務 <span class="heart-doodle">💗</span></h1>
+        <div class="subtitle">一起完成每件小事，讓愛更靠近 🩷</div>
+      </div>
+      <div class="couple-ava">
+        <span class="ava a">{{ meInitial() }}</span>
+        <span class="ava b">{{ partnerInitial() }}</span>
+      </div>
+    </div>
+
+    <div class="screen-pad-sm" style="padding-bottom:0">
+      <div class="tabrow">
         @for (t of tabs; track t[0]) {
-          <span class="chip" [class.active]="tab() === t[0]" (click)="setTab(t[0])">{{ t[1] }}</span>
+          <button class="tabcard" [class.active]="tab() === t[0]" (click)="setTab(t[0])">
+            <span class="tc-ic">{{ t[2] }}</span><span class="tc-label">{{ t[1] }}</span>
+          </button>
         }
       </div>
     </div>
 
-    <div class="screen stack" style="padding-top:0">
+    <div class="screen stack" style="padding-top:12px">
       @if (showCreate()) {
         <div class="card stack">
           <input class="input" placeholder="新增任務…" name="title" [(ngModel)]="f.title" />
@@ -40,30 +55,39 @@ import { Todo } from '../../core/models';
         </div>
       }
 
-      @if (loading()) { <div class="empty">載入中…</div> }
-      @else if (!todos().length) { <div class="empty">這裡還沒有任務 ✨</div> }
-      @else {
-        <div class="pill-list">
-          @for (t of todos(); track t.id) {
-            <div class="card" style="padding:12px 14px">
+      @if (loading()) {
+        <div class="empty">載入中…</div>
+      } @else if (!todos().length) {
+        <div class="empty">這個分頁還沒有任務 ✨<br />點右下角 ＋ 新增一件一起完成的事</div>
+      } @else {
+        <div class="card">
+          <div class="between">
+            <h3 style="margin:0">{{ tabLabel() }}</h3>
+            <span class="script">一起努力的每一天都很甜 🩷</span>
+          </div>
+          @if (tab() === 'today') { <div class="tiny" style="color:var(--primary-ink);margin-top:4px">📅 {{ todayLabel }}</div> }
+          <hr class="dashed" />
+          <div class="pill-list">
+            @for (t of todos(); track t.id) {
               <div class="row">
                 <span class="todo-check" [class.done]="t.status === 'DONE'" (click)="toggle(t)">@if (t.status === 'DONE') { ✓ }</span>
                 <a class="grow" [routerLink]="['/todos', t.id]">
-                  <div [class.strike]="t.status === 'DONE'">{{ t.title }}
+                  <div [class.strike]="t.status === 'DONE'" style="font-weight:700">{{ t.title }}
                     @if (t.isSecret) { <span class="badge badge-soft">驚喜</span> }
                   </div>
-                  <div class="tiny muted">
-                    {{ assignee(t) }}
-                    @if (t.dueDate) { ｜截止 {{ date(t.dueDate) }} }
-                    @if (t.priority === 'HIGH') { ｜<span style="color:var(--danger)">高</span> }
+                  <div class="row tiny" style="margin-top:4px;gap:6px">
+                    <span class="tag">{{ assignee(t) }}</span>
+                    @if (t.dueDate) { <span class="muted">截止 {{ date(t.dueDate) }}</span> }
+                    @if (t.priority === 'HIGH') { <span style="color:var(--danger)">· 高</span> }
                   </div>
                   @if (t.type === 'GOAL' && t.goalTarget) {
-                    <div class="tiny" style="color:var(--primary-ink)">{{ t.goalCurrent || 0 }} / {{ t.goalTarget }} {{ t.goalUnit }}</div>
+                    <div class="tiny" style="color:var(--primary-ink);margin-top:2px">{{ t.goalCurrent || 0 }} / {{ t.goalTarget }} {{ t.goalUnit }}</div>
                   }
                 </a>
+                <span style="font-size:1.15rem">🩷</span>
               </div>
-            </div>
-          }
+            }
+          </div>
         </div>
       }
     </div>
@@ -72,20 +96,27 @@ import { Todo } from '../../core/models';
 })
 export class TodosPage implements OnInit {
   private api = inject(Api);
+  private auth = inject(Auth);
+  private couple = inject(CoupleStore);
 
-  tabs: [string, string][] = [
-    ['today', '今天'], ['week', '本週'], ['undated', '想到再做'], ['DATE', '約會'], ['TRAVEL', '旅行'],
-    ['HOUSEWORK', '家務'], ['GOAL', '目標'], ['done', '已完成'], ['all', '全部'],
+  tabs: [string, string, string][] = [
+    ['today', '今天', '💗'], ['undated', '想到再做', '💭'], ['DATE', '約會', '💕'],
+    ['TRAVEL', '旅行', '✈️'], ['HOUSEWORK', '家務', '🏠'], ['GOAL', '目標', '🚩'],
+    ['done', '已完成', '✅'], ['week', '本週', '🗓️'], ['all', '全部', '📋'],
   ];
   tab = signal('today');
   todos = signal<Todo[]>([]);
   loading = signal(false);
   showCreate = signal(false);
   f = { title: '', type: 'GENERAL', assignee: 'BOTH', priority: 'MEDIUM', dueDate: '' };
+  todayLabel = new Date().toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', weekday: 'long' });
 
   ngOnInit() { this.load(); }
 
   setTab(t: string) { this.tab.set(t); this.load(); }
+  tabLabel() { return this.tabs.find((t) => t[0] === this.tab())?.[1] ?? '任務'; }
+  meInitial() { return initial(this.auth.user()?.displayName); }
+  partnerInitial() { return initial(this.couple.couple()?.partner?.displayName); }
 
   async load() {
     this.loading.set(true);
