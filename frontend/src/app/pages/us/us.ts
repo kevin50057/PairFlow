@@ -3,14 +3,15 @@ import { RouterLink } from '@angular/router';
 import { CoupleStore } from '../../core/couple';
 import { Auth } from '../../core/auth';
 import { initial } from '../../core/labels';
+import { CoupleAvatar } from '../../shared/couple-avatar';
 
 @Component({
   selector: 'pf-us',
-  imports: [RouterLink],
+  imports: [RouterLink, CoupleAvatar],
   template: `
     <div class="appbar">
       <h1>我們 <span class="heart-doodle">💞</span></h1>
-      <span class="couple-cartoon" style="font-size:2rem">💑</span>
+      <pf-couple-avatar [size]="38" />
     </div>
     <div class="screen stack">
       <div class="card card-warm center-text">

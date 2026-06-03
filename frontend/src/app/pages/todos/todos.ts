@@ -6,17 +6,18 @@ import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
 import { Todo } from '../../core/models';
 import { initial } from '../../core/labels';
+import { CoupleAvatar } from '../../shared/couple-avatar';
 
 @Component({
   selector: 'pf-todos',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CoupleAvatar],
   template: `
     <div class="appbar">
       <div>
         <h1>我們的任務 <span class="heart-doodle">💗</span></h1>
         <div class="subtitle">一起完成每件小事，讓愛更靠近 🩷</div>
       </div>
-      <span class="couple-cartoon" style="font-size:2rem">💑</span>
+      <pf-couple-avatar [size]="38" />
     </div>
 
     <div class="screen-pad-sm" style="padding-bottom:0">

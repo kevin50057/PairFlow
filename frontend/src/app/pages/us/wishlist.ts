@@ -6,10 +6,11 @@ import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
 import { Wish } from '../../core/models';
 import { WISH_CATEGORY, initial } from '../../core/labels';
+import { CoupleAvatar } from '../../shared/couple-avatar';
 
 @Component({
   selector: 'pf-wishlist',
-  imports: [FormsModule],
+  imports: [FormsModule, CoupleAvatar],
   template: `
     <div class="appbar">
       <button class="back" (click)="loc.back()">‹</button>
@@ -26,7 +27,7 @@ import { WISH_CATEGORY, initial } from '../../core/labels';
             <div style="font-weight:800;font-size:1.05rem">願望清單 <span style="color:var(--primary-deep)">{{ completed() }}</span> / {{ total() }} 已完成</div>
             <div class="subtitle small">一起把想做的事慢慢完成 ♡</div>
           </div>
-          <span class="couple-cartoon" style="font-size:3rem">💑</span>
+          <pf-couple-avatar [size]="50" />
         </div>
         <div class="row" style="margin-top:14px;gap:10px">
           <div class="progress-track grow"><div class="progress-fill" [style.width.%]="pct()"></div></div>

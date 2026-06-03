@@ -6,10 +6,11 @@ import { CoupleStore } from '../../core/couple';
 import { Home, Todo, Wish } from '../../core/models';
 import { MOOD, initial } from '../../core/labels';
 import { NotificationStore } from '../../core/notifications';
+import { CoupleAvatar } from '../../shared/couple-avatar';
 
 @Component({
   selector: 'pf-home',
-  imports: [RouterLink],
+  imports: [RouterLink, CoupleAvatar],
   template: `
     <div class="appbar">
       <div>
@@ -20,7 +21,7 @@ import { NotificationStore } from '../../core/notifications';
       </div>
       <div class="row" style="gap:10px">
         <a routerLink="/us/notifications" class="bell">🔔@if (notif.unread() > 0) { <span class="bell-badge">{{ notif.unread() }}</span> }</a>
-        <span class="couple-cartoon" style="font-size:2rem">💑</span>
+        <pf-couple-avatar [size]="38" />
       </div>
     </div>
 
