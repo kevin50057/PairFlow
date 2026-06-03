@@ -1,17 +1,32 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { LucideHeartHandshake, LucideLogIn } from '@lucide/angular';
 import { Auth } from '../../core/auth';
 
 @Component({
   selector: 'pf-login',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, LucideHeartHandshake, LucideLogIn],
   template: `
     <div class="center">
       <div class="card card-warm" style="width:100%;max-width:380px">
+        <div class="login-preview">
+          <div class="preview-top">
+            <div>
+              <div class="daily-kicker">PairFlow</div>
+              <b>今天的兩人工作台</b>
+            </div>
+            <svg lucideHeartHandshake size="26" color="var(--primary-deep)"></svg>
+          </div>
+          <div class="preview-grid">
+            <div class="preview-metric"><b>2</b><span>任務</span></div>
+            <div class="preview-metric"><b>1</b><span>行程</span></div>
+            <div class="preview-metric"><b>12</b><span>倒數</span></div>
+          </div>
+        </div>
         <div class="center-text" style="margin-bottom:18px">
           <div class="hero-day">PairFlow</div>
-          <p class="muted small">一起生活、一起記錄、一起完成事情 ❤️</p>
+          <p class="muted small">一起生活、一起記錄、一起完成事情</p>
         </div>
         <form (ngSubmit)="submit()" class="stack">
           <div class="field">
@@ -24,6 +39,7 @@ import { Auth } from '../../core/auth';
           </div>
           @if (error()) { <div class="error">{{ error() }}</div> }
           <button class="btn btn-primary btn-block" type="submit" [disabled]="loading()">
+            <svg lucideLogIn size="18"></svg>
             {{ loading() ? '登入中…' : '登入' }}
           </button>
         </form>

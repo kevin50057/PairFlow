@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { LucidePlus, LucideX } from '@lucide/angular';
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
@@ -10,21 +11,21 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
 
 @Component({
   selector: 'pf-todos',
-  imports: [FormsModule, RouterLink, CoupleAvatar],
+  imports: [FormsModule, RouterLink, CoupleAvatar, LucidePlus, LucideX],
   template: `
     <div class="appbar">
       <div>
-        <h1>我們的任務 <span class="heart-doodle">💗</span></h1>
-        <div class="subtitle">一起完成每件小事，讓愛更靠近 🩷</div>
+        <h1>我們的任務</h1>
+        <div class="subtitle">把今天要照顧的事排清楚</div>
       </div>
       <pf-couple-avatar [size]="38" />
     </div>
 
     <div class="screen-pad-sm" style="padding-bottom:0">
-      <div class="tabrow">
+      <div class="filterbar">
         @for (t of tabs; track t[0]) {
-          <button class="tabcard" [class.active]="tab() === t[0]" (click)="setTab(t[0])">
-            <span class="tc-ic">{{ t[2] }}</span><span class="tc-label">{{ t[1] }}</span>
+          <button class="filter-pill" [class.active]="tab() === t[0]" (click)="setTab(t[0])">
+            {{ t[1] }}
           </button>
         }
       </div>
@@ -49,14 +50,17 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
             </select>
             <input class="input" type="datetime-local" name="due" [(ngModel)]="f.dueDate" />
           </div>
-          <div class="row"><button class="btn btn-primary grow" (click)="create()">新增</button><button class="btn btn-outline" (click)="showCreate.set(false)">取消</button></div>
+          <div class="row">
+            <button class="btn btn-primary grow" (click)="create()"><svg lucidePlus size="18"></svg>新增</button>
+            <button class="btn btn-outline" (click)="showCreate.set(false)"><svg lucideX size="18"></svg>取消</button>
+          </div>
         </div>
       }
 
       @if (loading()) {
         <div class="empty">載入中…</div>
       } @else if (!todos().length) {
-        <div class="empty"><span class="emoji">💗</span>這個分頁還沒有任務<br />點右下角 ＋ 新增一件一起完成的事</div>
+        <div class="empty">這個分頁還沒有任務<br />點右下角新增一件一起完成的事</div>
       } @else {
         <div class="card">
           <div class="between">
@@ -88,7 +92,7 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
         </div>
       }
     </div>
-    <button class="fab" (click)="showCreate.set(!showCreate())">＋</button>
+    <button class="fab" (click)="showCreate.set(!showCreate())" aria-label="新增任務"><svg lucidePlus size="28"></svg></button>
   `,
 })
 export class TodosPage implements OnInit {
