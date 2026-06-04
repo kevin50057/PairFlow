@@ -13,6 +13,56 @@ aggregated **daily home dashboard**.
 
 ---
 
+## 🚀 怎麼啟動 / 怎麼使用（繁中）
+
+### 最快：一鍵啟動
+在專案根目錄執行：
+```bash
+./start.sh
+```
+它會自動依序啟動 **PostgreSQL → 後端 (:8080) → 前端 (:4200)**，完成後印出網址。
+打開瀏覽器到 **http://localhost:4200** 就能用了。
+要結束就在這個終端機按 **Ctrl + C**（或另開一個視窗執行 `./stop.sh`）。
+
+### 登入（內建示範帳號）
+| 欄位 | 值 |
+|---|---|
+| 帳號 | `kevin@pairflow.test` |
+| 密碼 | `secret123` |
+
+另一半是「**魚丸**」。你也可以自己註冊兩個帳號，用邀請碼把它們配成一對。
+
+### 怎麼用（五個分頁）
+- **首頁**：今日任務 / 行程 / 對方心情 / 下一個紀念日，一眼看完。
+- **任務**：兩人的共同待辦；「**想到再做**」分頁＝不需要時間的 to-do list。
+- **行事曆**：共同行程。
+- **回憶**：相簿 +「去年今天」。
+- **我們**：心情打卡、小紙條／未來信、**每日問題**、**未來一起做的事**（願望清單）、記帳、約會投票、和好模式、通知設定。
+
+> 每天第一次進來會跳出「**今日問題**」，兩人都回答後才會解鎖看到對方的答案 💌
+
+### 第一次需要先裝的工具（只做一次）
+```bash
+brew install openjdk@21 maven node postgresql@16
+```
+首次執行 `./start.sh` 時會自動幫你建立資料庫與帳號；若失敗，請改用下方「手動啟動」。
+
+### 手動啟動（想分開看三個服務時）
+詳見下方英文版 **Quick start**：開三個終端機分別跑 PostgreSQL、`cd backend && mvn spring-boot:run`、`cd frontend && npm start`。
+
+### 沒有 PostgreSQL？用免安裝的 H2
+```bash
+cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=h2
+```
+
+### 疑難排解
+- 後端起不來 → 看 `backend/.run.log`；前端起不來 → 看 `frontend/.run.log`。
+- macOS 若 Postgres 出現 `postmaster became multithreaded` → 用
+  `LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 brew services restart postgresql@16`。
+- Port 8080 / 4200 被占用 → 先 `./stop.sh` 再 `./start.sh`。
+
+---
+
 ## Tech stack
 
 | Layer | Choice |
