@@ -57,6 +57,7 @@
 ## ✅ 個人檔案 + 生日（你提的）
 - [x] **新增「我」分頁**（底部第 6 個 tab，路由 `/me`）— 個人檔案頁
 - [x] **可設定的個人資料** — 大頭貼（10 種：男生/女生卡通＋ 8 款動物 emoji）、暱稱、**生日**、性別、一句話介紹；右上角大頭貼點擊也可進入
+- [x] **上傳自己的照片當大頭貼** — `POST /api/users/me/avatar`（multipart，限圖片、≤5MB）存到獨立 `uploads/avatars/`，由**公開**端點 `GET /api/avatars/{file}` 提供（與私人相簿照片隔離，避免被猜 id 取得）
 - [x] **每個人各自的大頭貼** — `User.avatarUrl` 真正套用到 app 全站（不再寫死男女各一張）
 - [x] **生日驅動的提醒與倒數** — 後端 `User.birthday`：首頁「下一個重要日子」自動納入雙方生日；排程在生日**前 7 天 / 前 1 天 / 當天**通知兩人 🎂（不必再手動建生日紀念日）
 - [x] **後端**：`User` 新增 `gender`、`bio`（Flyway `V3__user_profile.sql`）；`HomeService`、`NotificationScheduler` 納入生日；種子資料補上雙方生日/性別/大頭貼/簡介

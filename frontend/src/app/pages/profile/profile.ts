@@ -1,15 +1,16 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { LucideCake, LucideChevronRight, LucideLogOut, LucideSettings } from '@lucide/angular';
+import { LucideCake, LucideCamera, LucideChevronRight, LucideLogOut, LucideSettings } from '@lucide/angular';
+import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
-import { Gender } from '../../core/models';
+import { Gender, User } from '../../core/models';
 import { Avatar } from '../../shared/avatar';
 
 @Component({
   selector: 'pf-profile',
-  imports: [FormsModule, RouterLink, Avatar, LucideCake, LucideChevronRight, LucideLogOut, LucideSettings],
+  imports: [FormsModule, RouterLink, Avatar, LucideCake, LucideCamera, LucideChevronRight, LucideLogOut, LucideSettings],
   template: `
     <div class="appbar">
       <div>
@@ -41,6 +42,11 @@ import { Avatar } from '../../shared/avatar';
             </button>
           }
         </div>
+        <label class="btn btn-outline btn-block" style="margin-top:4px">
+          <svg lucideCamera size="16"></svg> {{ uploading() ? '上傳中…' : '上傳自己的照片' }}
+          <input type="file" accept="image/*" (change)="uploadAvatar($event)" hidden [disabled]="uploading()" />
+        </label>
+        @if (form.avatarUrl?.startsWith('/api/')) { <div class="tiny center-text" style="color:var(--ok)">目前使用自訂照片 ✓</div> }
       </div>
 
       <!-- editable fields -->
@@ -106,6 +112,7 @@ import { Avatar } from '../../shared/avatar';
 export class ProfilePage implements OnInit {
   auth = inject(Auth);
   couple = inject(CoupleStore);
+  private api = inject(Api);
   private router = inject(Router);
 
   genders: [Gender, string][] = [['MALE', '他 / 男生'], ['FEMALE', '她 / 女生'], ['OTHER', '其他']];
@@ -120,6 +127,7 @@ export class ProfilePage implements OnInit {
   };
   saving = signal(false);
   saved = signal(false);
+  uploading = signal(false);
   error = signal('');
 
   async ngOnInit() {
@@ -138,6 +146,28 @@ export class ProfilePage implements OnInit {
   }
 
   myFallback(): 'boy' | 'girl' { return this.form.gender === 'FEMALE' ? 'girl' : 'boy'; }
+
+  async uploadAvatar(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploading.set(true);
+    this.error.set('');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const user = await this.api.upload<User>('/users/me/avatar', form);
+      this.auth.user.set(user);
+      this.form.avatarUrl = user.avatarUrl;
+      this.saved.set(true);
+      setTimeout(() => this.saved.set(false), 1800);
+    } catch (e: any) {
+      this.error.set(e?.error?.message ?? '上傳失敗，請換一張圖片再試');
+    } finally {
+      this.uploading.set(false);
+      input.value = '';
+    }
+  }
 
   async save() {
     this.error.set('');

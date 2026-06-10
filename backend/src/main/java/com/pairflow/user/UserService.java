@@ -31,4 +31,11 @@ public class UserService {
         if (req.timezone() != null) user.setTimezone(req.timezone());
         return user;
     }
+
+    @Transactional
+    public User setAvatar(String id, String avatarUrl) {
+        User user = getById(id);
+        user.setAvatarUrl(avatarUrl);
+        return user;
+    }
 }

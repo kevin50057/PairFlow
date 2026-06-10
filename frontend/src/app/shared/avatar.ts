@@ -1,4 +1,7 @@
 import { Component, Input, signal } from '@angular/core';
+import { API_BASE } from '../core/api';
+
+const API_ORIGIN = API_BASE.replace(/\/api$/, '');
 
 /**
  * One person's avatar. `src` may be:
@@ -37,6 +40,11 @@ export class Avatar {
   }
   showEmoji(): boolean { return this.broken() || this.value().startsWith('emoji:'); }
   emoji(): string { const v = this.value(); return v.startsWith('emoji:') ? v.slice(6) : '💑'; }
-  img(): string { return this.value(); }
+  img(): string {
+    const v = this.value();
+    if (v.startsWith('http')) return v;
+    if (v.startsWith('/api')) return API_ORIGIN + v; // uploaded avatar → backend origin
+    return v;                                        // preset → frontend-served
+  }
   round(n: number): number { return Math.round(n); }
 }
