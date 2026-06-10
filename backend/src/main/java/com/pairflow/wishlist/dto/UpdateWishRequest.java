@@ -5,6 +5,8 @@ import com.pairflow.wishlist.WishCategory;
 import com.pairflow.wishlist.WishStatus;
 import jakarta.validation.constraints.Size;
 
+import java.time.Instant;
+
 public record UpdateWishRequest(
         @Size(max = 200) String title,
         @Size(max = 1000) String description,
@@ -14,6 +16,7 @@ public record UpdateWishRequest(
         Double estimatedCost,
         String location,
         String link,
-        String targetNote
+        String targetNote,
+        Instant scheduledAt
 ) {
 }

@@ -84,7 +84,7 @@ export interface Photo { id: string; albumId?: string; uploaderId: string; image
 export interface Wish {
   id: string; title: string; description?: string; category: string; priority: string;
   estimatedCost?: number; location?: string; link?: string; targetNote?: string; status: string;
-  convertedTodoId?: string; completedAt?: string; createdAt: string;
+  convertedTodoId?: string; scheduledAt?: string; completedAt?: string; createdAt: string;
 }
 
 export interface Expense {

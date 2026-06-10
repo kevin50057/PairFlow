@@ -18,6 +18,7 @@ public record WishResponse(
         String addedBy,
         String status,
         String convertedTodoId,
+        Instant scheduledAt,
         Instant completedAt,
         Instant createdAt
 ) {
@@ -25,6 +26,6 @@ public record WishResponse(
         return new WishResponse(w.getId(), w.getCoupleId(), w.getTitle(), w.getDescription(),
                 w.getCategory().name(), w.getPriority().name(), w.getEstimatedCost(), w.getLocation(),
                 w.getLink(), w.getTargetNote(), w.getAddedBy(), w.getStatus().name(), w.getConvertedTodoId(),
-                w.getCompletedAt(), w.getCreatedAt());
+                w.getScheduledAt(), w.getCompletedAt(), w.getCreatedAt());
     }
 }

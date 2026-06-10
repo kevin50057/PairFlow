@@ -4,10 +4,10 @@ import { LucideChevronLeft, LucideChevronRight, LucideClock, LucideMapPin, Lucid
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
-import { Anniversary, EventItem, Todo } from '../../core/models';
+import { Anniversary, EventItem, Wish } from '../../core/models';
 
 type Marker = { label: string; color: string };
-type Cell = { key: string; day: number; inMonth: boolean; isToday: boolean; events: EventItem[]; todos: Todo[]; markers: Marker[] };
+type Cell = { key: string; day: number; inMonth: boolean; isToday: boolean; events: EventItem[]; wishes: Wish[]; markers: Marker[] };
 
 const TYPES: [string, string, string][] = [
   ['DATE', '約會', 'var(--primary)'],
@@ -53,7 +53,7 @@ const BIRTHDAY_COLOR = '#e8a13a';
               <span class="cal-dots">
                 @for (m of c.markers; track $index) { <i class="dot" [style.background]="m.color"></i> }
                 @for (e of c.events.slice(0, 3); track e.id) { <i class="dot" [style.background]="color(e.eventType)"></i> }
-                @for (t of c.todos.slice(0, 2); track t.id) { <i class="dot ring" [class.done]="t.status === 'DONE'"></i> }
+                @for (w of c.wishes.slice(0, 2); track w.id) { <span class="wish-pip" [class.done]="w.status === 'COMPLETED'">💗</span> }
               </span>
             </button>
           }
@@ -61,7 +61,7 @@ const BIRTHDAY_COLOR = '#e8a13a';
 
         <div class="cal-legend">
           @for (t of types; track t[0]) { <span class="leg"><i class="dot" [style.background]="t[2]"></i>{{ t[1] }}</span> }
-          <span class="leg"><i class="dot ring"></i>任務</span>
+          <span class="leg"><span class="wish-pip">💗</span>願望</span>
         </div>
       </div>
 
@@ -88,19 +88,20 @@ const BIRTHDAY_COLOR = '#e8a13a';
             <button class="icon-btn" (click)="$event.stopPropagation(); removeEvent(e)" aria-label="刪除"><svg lucideTrash2 size="15"></svg></button>
           </div>
         }
-        @for (t of selectedTodos(); track t.id) {
+        @for (w of selectedWishes(); track w.id) {
           <div class="row" style="margin:10px 0;align-items:flex-start">
-            <span class="todo-check" [class.done]="t.status === 'DONE'" (click)="toggleTodo(t)" style="margin-top:2px">@if (t.status === 'DONE') { ✓ }</span>
+            <span style="font-size:1.05rem;margin-top:1px">💗</span>
             <div class="grow">
-              <b [class.strike]="t.status === 'DONE'">{{ t.title }}</b>
+              <b [class.strike]="w.status === 'COMPLETED'">{{ w.title }}</b>
               <div class="tiny muted row" style="gap:6px">
-                <span>{{ todoTime(t) }} · 任務</span>
-                @if (t.autoComplete) { <span class="auto-badge"><svg lucideClock size="11"></svg> 到時間自動完成</span> }
+                <span>{{ wishTime(w) }} · 願望</span>
+                @if (w.status === 'COMPLETED') { <span class="badge badge-soft">已完成</span> }
+                @else { <span class="auto-badge"><svg lucideClock size="11"></svg> 到時間自動完成</span> }
               </div>
             </div>
           </div>
         }
-        @if (!selectedMarkers().length && !selectedEvents().length && !selectedTodos().length) {
+        @if (!selectedMarkers().length && !selectedEvents().length && !selectedWishes().length) {
           <p class="muted small" style="margin:6px 0">這天還沒有安排，點「新增」加一個吧 🌷</p>
         }
       </div>
@@ -149,7 +150,7 @@ export class CalendarPage implements OnInit {
   view = signal<'month' | 'week'>('month');
   cursor = signal(new Date());
   events = signal<EventItem[]>([]);
-  todos = signal<Todo[]>([]);
+  wishes = signal<Wish[]>([]);
   annivs = signal<Anniversary[]>([]);
   selected = signal(dateKey(new Date()));
   showSheet = signal(false);
@@ -179,7 +180,7 @@ export class CalendarPage implements OnInit {
   });
 
   private eventsByDay = computed(() => groupByDay(this.events(), (e) => e.startTime));
-  private todosByDay = computed(() => groupByDay(this.todos(), (t) => t.dueDate));
+  private wishesByDay = computed(() => groupByDay(this.wishes(), (w) => w.scheduledAt));
 
   private recurring = computed<{ md: string; marker: Marker }[]>(() => {
     const out: { md: string; marker: Marker }[] = [];
@@ -198,21 +199,21 @@ export class CalendarPage implements OnInit {
     const [start, end] = this.range();
     const month = this.cursor().getMonth();
     const evMap = this.eventsByDay();
-    const tdMap = this.todosByDay();
+    const wMap = this.wishesByDay();
     const todayKey = dateKey(new Date());
     const cells: Cell[] = [];
     for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const key = dateKey(d);
       cells.push({
         key, day: d.getDate(), inMonth: this.view() === 'week' || d.getMonth() === month,
-        isToday: key === todayKey, events: evMap.get(key) ?? [], todos: tdMap.get(key) ?? [], markers: this.markersFor(key),
+        isToday: key === todayKey, events: evMap.get(key) ?? [], wishes: wMap.get(key) ?? [], markers: this.markersFor(key),
       });
     }
     return cells;
   });
 
   selectedEvents = computed(() => this.eventsByDay().get(this.selected()) ?? []);
-  selectedTodos = computed(() => this.todosByDay().get(this.selected()) ?? []);
+  selectedWishes = computed(() => this.wishesByDay().get(this.selected()) ?? []);
   selectedMarkers = computed(() => this.markersFor(this.selected()));
   selectedLabel = computed(() => {
     const d = new Date(this.selected() + 'T00:00:00');
@@ -224,13 +225,13 @@ export class CalendarPage implements OnInit {
 
   async load() {
     const [from, to] = this.range();
-    const [events, todos, annivs] = await Promise.all([
+    const [events, wishes, annivs] = await Promise.all([
       this.api.get<EventItem[]>('/events', { from: from.toISOString(), to: to.toISOString() }),
-      this.api.get<Todo[]>('/todos', { dueFrom: from.toISOString(), dueTo: to.toISOString() }),
+      this.api.get<Wish[]>('/wishes'),
       this.api.get<Anniversary[]>('/anniversaries'),
     ]);
     this.events.set(events);
-    this.todos.set(todos);
+    this.wishes.set(wishes);
     this.annivs.set(annivs);
   }
 
@@ -292,11 +293,6 @@ export class CalendarPage implements OnInit {
   }
 
   async removeEvent(e: EventItem) { await this.api.del(`/events/${e.id}`); await this.load(); }
-  async toggleTodo(t: Todo) {
-    if (t.status === 'DONE') await this.api.patch(`/todos/${t.id}`, { status: 'PENDING' });
-    else await this.api.post(`/todos/${t.id}/complete`);
-    await this.load();
-  }
 
   color(type: string) { return TYPES.find((t) => t[0] === type)?.[2] ?? '#9aa0a6'; }
   typeLabel(type: string) { return TYPES.find((t) => t[0] === type)?.[1] ?? type; }
@@ -305,9 +301,9 @@ export class CalendarPage implements OnInit {
     if (s.getHours() === 0 && s.getMinutes() === 0 && !e.endTime) return '整天';
     return e.endTime ? `${hhmm(s)}–${hhmm(new Date(e.endTime))}` : hhmm(s);
   }
-  todoTime(t: Todo) {
-    if (!t.dueDate) return '';
-    const d = new Date(t.dueDate);
+  wishTime(w: Wish) {
+    if (!w.scheduledAt) return '';
+    const d = new Date(w.scheduledAt);
     return d.getHours() === 0 && d.getMinutes() === 0 ? '整天' : hhmm(d);
   }
 }

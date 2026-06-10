@@ -71,12 +71,26 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
                 @if (w.status === 'COMPLETED') { <span class="badge badge-soft">已完成</span> }
               </div>
               <span class="tag" style="margin-top:5px;display:inline-block">{{ catLabel(w.category) }}</span>
-              @if (w.targetNote) { <div class="tiny muted" style="margin-top:5px">📅 {{ w.targetNote }}</div> }
+              @if (w.targetNote) { <div class="tiny muted" style="margin-top:5px">🎯 {{ w.targetNote }}</div> }
               @if (w.description) { <div class="small muted" style="margin-top:2px">{{ w.description }}</div> }
-              <div class="row tiny" style="margin-top:7px;gap:12px">
-                @if (w.status !== 'COMPLETED' && !w.convertedTodoId) { <a class="link" (click)="toTodo(w)">轉成任務</a> }
-                <a (click)="remove(w)" style="color:var(--muted);cursor:pointer">刪除</a>
-              </div>
+              @if (w.scheduledAt && w.status !== 'COMPLETED') {
+                <div class="tiny" style="color:var(--primary-ink);margin-top:5px">📅 {{ when(w.scheduledAt) }} 加到行事曆 · 時間到自動完成</div>
+              }
+
+              @if (scheduling() === w.id) {
+                <div class="stack" style="margin-top:8px;gap:6px">
+                  <input class="input" type="datetime-local" name="sa" [(ngModel)]="scheduleAt" />
+                  <div class="row" style="gap:8px">
+                    <button class="btn btn-primary btn-sm grow" (click)="confirmSchedule(w)">確定加到行事曆</button>
+                    <button class="btn btn-outline btn-sm" (click)="scheduling.set(null)">取消</button>
+                  </div>
+                </div>
+              } @else {
+                <div class="row tiny" style="margin-top:7px;gap:12px">
+                  @if (w.status !== 'COMPLETED') { <a class="link" (click)="openSchedule(w)">{{ w.scheduledAt ? '改時間' : '加到行事曆' }}</a> }
+                  <a (click)="remove(w)" style="color:var(--muted);cursor:pointer">刪除</a>
+                </div>
+              }
             </div>
             <button class="heart-toggle" (click)="toggleDone(w)" [attr.aria-label]="w.status === 'COMPLETED' ? '取消完成' : '完成'">
               {{ w.status === 'COMPLETED' ? '♥' : '♡' }}
@@ -96,6 +110,8 @@ export class WishlistPage implements OnInit {
   wishes = signal<Wish[]>([]);
   selectedCat = signal<string | null>(null);
   show = signal(false);
+  scheduling = signal<string | null>(null);
+  scheduleAt = '';
   cats = Object.entries(WISH_CATEGORY);
   f = { title: '', category: 'PLACE', targetNote: '', description: '' };
 
@@ -141,6 +157,18 @@ export class WishlistPage implements OnInit {
     else await this.api.post(`/wishes/${w.id}/complete`);
     this.load();
   }
-  async toTodo(w: Wish) { await this.api.post(`/wishes/${w.id}/to-todo`); this.load(); }
+  openSchedule(w: Wish) {
+    const base = w.scheduledAt ? new Date(w.scheduledAt) : new Date(Date.now() + 2 * 3600 * 1000);
+    const p = (n: number) => String(n).padStart(2, '0');
+    this.scheduleAt = `${base.getFullYear()}-${p(base.getMonth() + 1)}-${p(base.getDate())}T${p(base.getHours())}:${p(base.getMinutes())}`;
+    this.scheduling.set(w.id);
+  }
+  async confirmSchedule(w: Wish) {
+    if (!this.scheduleAt) return;
+    await this.api.patch(`/wishes/${w.id}`, { scheduledAt: new Date(this.scheduleAt).toISOString() });
+    this.scheduling.set(null);
+    this.load();
+  }
+  when(iso: string) { return new Date(iso).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }); }
   async remove(w: Wish) { await this.api.del(`/wishes/${w.id}`); this.load(); }
 }

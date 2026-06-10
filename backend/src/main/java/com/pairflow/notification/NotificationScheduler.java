@@ -13,6 +13,9 @@ import com.pairflow.todo.TodoRepository;
 import com.pairflow.todo.TodoStatus;
 import com.pairflow.user.User;
 import com.pairflow.user.UserRepository;
+import com.pairflow.wishlist.Wish;
+import com.pairflow.wishlist.WishRepository;
+import com.pairflow.wishlist.WishStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -39,6 +42,7 @@ public class NotificationScheduler {
     private final TodoRepository todoRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final WishRepository wishRepository;
 
     /** Reminder offsets (days before) for birthdays. */
     private static final long[] BIRTHDAY_OFFSETS = {7, 1, 0};
@@ -47,12 +51,14 @@ public class NotificationScheduler {
                                  AnniversaryRepository anniversaryRepository,
                                  TodoRepository todoRepository,
                                  NotificationService notificationService,
-                                 UserRepository userRepository) {
+                                 UserRepository userRepository,
+                                 WishRepository wishRepository) {
         this.coupleRepository = coupleRepository;
         this.anniversaryRepository = anniversaryRepository;
         this.todoRepository = todoRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
+        this.wishRepository = wishRepository;
     }
 
     /** Birthday reminders for both members of each active couple (spec 7.4). */
@@ -150,6 +156,28 @@ public class NotificationScheduler {
         }
         todoRepository.saveAll(due);
         log.info("[scheduler] auto-completed {} due todos", due.size());
+    }
+
+    /**
+     * Wishes added to the calendar ("加到行事曆") auto-complete once their scheduled time passes —
+     * a shared "we did it" moment. Runs every minute.
+     */
+    @Scheduled(fixedRate = 60_000)
+    @Transactional
+    public void autoCompleteScheduledWishes() {
+        List<Wish> due = wishRepository.findByStatusAndScheduledAtLessThanEqual(WishStatus.ACTIVE, Instant.now());
+        if (due.isEmpty()) return;
+        for (Wish wish : due) {
+            wish.setStatus(WishStatus.COMPLETED);
+            wish.setCompletedAt(Instant.now());
+            Couple couple = coupleRepository.findById(wish.getCoupleId()).orElse(null);
+            if (couple != null) {
+                notifyBoth(couple, NotificationType.EVENT, "一起完成了一件事 🎉",
+                        "「" + wish.getTitle() + "」時間到，已自動標記完成 ✓", "WISH", wish.getId());
+            }
+        }
+        wishRepository.saveAll(due);
+        log.info("[scheduler] auto-completed {} scheduled wishes", due.size());
     }
 
     private void notifyBoth(Couple couple, NotificationType type,

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { LucideCalendarDays, LucideHeartHandshake, LucideHouse, LucideImages, LucideListTodo, LucideUserRound } from '@lucide/angular';
+import { LucideCalendarDays, LucideHeartHandshake, LucideHouse, LucideImages, LucideUserRound } from '@lucide/angular';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
 import { NotificationStore } from '../../core/notifications';
@@ -14,7 +14,6 @@ import { DailyQuestionModal } from '../../shared/daily-question-modal';
     RouterLinkActive,
     DailyQuestionModal,
     LucideHouse,
-    LucideListTodo,
     LucideCalendarDays,
     LucideImages,
     LucideHeartHandshake,
@@ -26,7 +25,6 @@ import { DailyQuestionModal } from '../../shared/daily-question-modal';
     <pf-daily-question />
     <nav class="bottomnav">
       <a routerLink="/home" routerLinkActive="active"><svg class="ic" lucideHouse></svg>首頁</a>
-      <a routerLink="/todos" routerLinkActive="active"><svg class="ic" lucideListTodo></svg>任務</a>
       <a routerLink="/calendar" routerLinkActive="active"><svg class="ic" lucideCalendarDays></svg>行事曆</a>
       <a routerLink="/memories" routerLinkActive="active"><svg class="ic" lucideImages></svg>回憶</a>
       <a routerLink="/us" routerLinkActive="active"><svg class="ic" lucideHeartHandshake></svg>我們@if (notif.unread() > 0) { <span class="nav-dot"></span> }</a>

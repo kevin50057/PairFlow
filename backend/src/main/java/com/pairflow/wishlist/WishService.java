@@ -74,6 +74,7 @@ public class WishService {
         if (req.location() != null) w.setLocation(req.location());
         if (req.link() != null) w.setLink(req.link());
         if (req.targetNote() != null) w.setTargetNote(req.targetNote());
+        if (req.scheduledAt() != null) w.setScheduledAt(req.scheduledAt());
         if (req.status() != null) applyStatus(w, req.status());
         return WishResponse.from(w);
     }

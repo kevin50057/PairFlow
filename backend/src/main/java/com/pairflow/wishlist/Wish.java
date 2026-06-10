@@ -54,5 +54,8 @@ public class Wish extends BaseEntity {
     /** Set when the wish has been turned into a todo (spec 7.12 "轉成 Todo"). */
     private String convertedTodoId;
 
+    /** "加到行事曆": when set, the wish shows on the calendar and auto-completes once it passes. */
+    private Instant scheduledAt;
+
     private Instant completedAt;
 }
