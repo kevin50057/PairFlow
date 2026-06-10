@@ -277,3 +277,30 @@ p { margin: 0 0 .5rem; }
 .preview-metric b { display: block; color: var(--primary-deep); font-size: 1.05rem; line-height: 1; }
 .preview-metric span { display: block; color: var(--muted); font-size: .67rem; margin-top: 4px; }
 .icon-inline { width: 1em; height: 1em; vertical-align: -0.14em; }
+
+/* ── single per-person avatar (img or emoji) ────────────────── */
+.ava-one { border-radius: 50%; object-fit: cover; border: 2.5px solid #fff; box-shadow: var(--shadow-sm); background: var(--primary-soft); display: inline-block; }
+.ava-emoji { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;
+  border: 2.5px solid #fff; box-shadow: var(--shadow-sm); line-height: 1;
+  background: linear-gradient(135deg, var(--primary-softer), var(--primary-soft)); }
+.couple-imgs .ca { display: inline-flex; }
+.couple-imgs .ca.b { margin-left: -12px; }
+
+/* ── profile page ───────────────────────────────────────────── */
+.profile-hero { display: flex; align-items: center; gap: 14px; }
+.profile-hero h2 { font-size: 1.25rem; font-weight: 900; }
+.hero-meta { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; color: var(--primary-ink); font-size: .8rem; font-weight: 700; }
+.hero-meta svg { color: var(--primary-ink); }
+.avatar-picker { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.pick { border: 2px solid transparent; background: var(--surface-2); border-radius: 14px; padding: 6px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .07s; }
+.pick:active { transform: scale(.94); }
+.pick.sel { border-color: var(--primary); background: var(--primary-softer); box-shadow: 0 0 0 3px rgba(230,111,145,.15); }
+.seg { display: flex; gap: 6px; }
+.seg-btn { flex: 1; border: 1.5px solid var(--border); background: #fff; color: var(--muted);
+  border-radius: 999px; padding: 9px 6px; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.seg-btn.sel { background: var(--primary-deep); color: #fff; border-color: transparent; }
+
+/* 6-tab bottom nav fits a touch tighter */
+.bottomnav a { font-size: .66rem; }
+.bottomnav a .ic { width: 21px; height: 21px; }

@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
@@ -10,16 +10,14 @@ type BreakupPhase = 'idle' | 'confirming' | 'pending' | 'partner_pending';
 
 @Component({
   selector: 'pf-settings',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   template: `
     <div class="appbar"><button class="back" (click)="loc.back()">‹</button><h1 style="font-size:1.1rem">關係設定</h1><span></span></div>
     <div class="screen stack">
-      <div class="card stack">
-        <div class="section-title" style="margin-top:0">個人檔案</div>
-        <div class="field"><label class="label">暱稱</label><input class="input" name="dn" [(ngModel)]="displayName" /></div>
-        <button class="btn btn-ghost" (click)="saveProfile()">儲存</button>
-        @if (saved()) { <span class="tiny" style="color:var(--ok)">已儲存 ✓</span> }
-      </div>
+      <a class="card between" routerLink="/me" style="align-items:center">
+        <span><b>個人檔案</b><div class="tiny muted">暱稱 · 生日 · 性別 · 大頭貼</div></span>
+        <span style="color:var(--muted);font-size:1.3rem">›</span>
+      </a>
 
       <div class="card stack">
         <div class="section-title" style="margin-top:0">在一起的開始日期</div>

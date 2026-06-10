@@ -25,3 +25,6 @@ npm-debug.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# local agent / preview tooling
+.claude/

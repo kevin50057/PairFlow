@@ -24,8 +24,10 @@ public class UserService {
     public User update(String id, UpdateUserRequest req) {
         User user = getById(id);
         if (req.displayName() != null) user.setDisplayName(req.displayName().trim());
-        if (req.avatarUrl() != null) user.setAvatarUrl(req.avatarUrl());
+        if (req.avatarUrl() != null) user.setAvatarUrl(req.avatarUrl().isBlank() ? null : req.avatarUrl());
         if (req.birthday() != null) user.setBirthday(req.birthday());
+        if (req.gender() != null) user.setGender(req.gender());
+        if (req.bio() != null) user.setBio(req.bio().isBlank() ? null : req.bio().trim());
         if (req.timezone() != null) user.setTimezone(req.timezone());
         return user;
     }

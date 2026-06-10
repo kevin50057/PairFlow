@@ -3,6 +3,8 @@ package com.pairflow.user;
 import com.pairflow.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
@@ -28,6 +30,13 @@ public class User extends BaseEntity {
     private String avatarUrl;
 
     private LocalDate birthday;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 16)
+    private Gender gender;
+
+    @Column(length = 200)
+    private String bio;
 
     @Column(nullable = false)
     private String timezone = "Asia/Taipei";

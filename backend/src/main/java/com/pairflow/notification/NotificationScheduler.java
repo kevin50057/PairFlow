@@ -11,6 +11,8 @@ import com.pairflow.couple.CoupleStatus;
 import com.pairflow.todo.Todo;
 import com.pairflow.todo.TodoRepository;
 import com.pairflow.todo.TodoStatus;
+import com.pairflow.user.User;
+import com.pairflow.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.MonthDay;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
@@ -35,15 +38,47 @@ public class NotificationScheduler {
     private final AnniversaryRepository anniversaryRepository;
     private final TodoRepository todoRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+
+    /** Reminder offsets (days before) for birthdays. */
+    private static final long[] BIRTHDAY_OFFSETS = {7, 1, 0};
 
     public NotificationScheduler(CoupleRepository coupleRepository,
                                  AnniversaryRepository anniversaryRepository,
                                  TodoRepository todoRepository,
-                                 NotificationService notificationService) {
+                                 NotificationService notificationService,
+                                 UserRepository userRepository) {
         this.coupleRepository = coupleRepository;
         this.anniversaryRepository = anniversaryRepository;
         this.todoRepository = todoRepository;
         this.notificationService = notificationService;
+        this.userRepository = userRepository;
+    }
+
+    /** Birthday reminders for both members of each active couple (spec 7.4). */
+    @Scheduled(cron = "0 0 8 * * *")
+    @Transactional(readOnly = true)
+    public void sendBirthdayReminders() {
+        LocalDate today = AppTime.today();
+        int sent = 0;
+        for (Couple couple : coupleRepository.findAllByStatus(CoupleStatus.ACTIVE)) {
+            for (String userId : List.of(couple.getUserAId(), couple.getUserBId())) {
+                User u = userRepository.findById(userId).orElse(null);
+                if (u == null || u.getBirthday() == null) continue;
+                MonthDay md = MonthDay.from(u.getBirthday());
+                LocalDate next = md.atYear(today.getYear());
+                if (next.isBefore(today)) next = md.atYear(today.getYear() + 1);
+                long daysLeft = ChronoUnit.DAYS.between(today, next);
+                if (Arrays.stream(BIRTHDAY_OFFSETS).noneMatch(d -> d == daysLeft)) continue;
+                String title = u.getDisplayName() + " 生日";
+                String msg = daysLeft == 0
+                        ? "今天是 " + u.getDisplayName() + " 的生日 🎂"
+                        : "距離 " + u.getDisplayName() + " 的生日還有 " + daysLeft + " 天 🎂";
+                notifyBoth(couple, NotificationType.ANNIVERSARY, title, msg, "BIRTHDAY", u.getId());
+                sent++;
+            }
+        }
+        log.info("[scheduler] birthday reminders sent: {}", sent);
     }
 
     @Scheduled(cron = "0 0 8 * * *")

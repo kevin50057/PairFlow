@@ -1,25 +1,30 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
+import { Auth } from '../core/auth';
+import { CoupleStore } from '../core/couple';
+import { Avatar } from './avatar';
 
 /**
- * The couple's default avatars: the boy + girl cartoon images (public/avatars/).
- * Falls back to the 💑 emoji if the image files aren't present yet.
+ * The overlapping pair of avatars shown in app bars: me + my partner.
+ * Each person uses their own chosen avatar (profile → 大頭貼); falls back to the
+ * boy / girl cartoon defaults when someone hasn't picked one yet.
  */
 @Component({
   selector: 'pf-couple-avatar',
+  imports: [Avatar],
   template: `
-    @if (failed()) {
-      <span class="couple-cartoon" [style.fontSize.px]="size">💑</span>
-    } @else {
-      <span class="couple-imgs">
-        <img class="ava-img" [style.width.px]="size" [style.height.px]="size"
-             src="/avatars/boy.png" alt="" (error)="failed.set(true)" />
-        <img class="ava-img b" [style.width.px]="size" [style.height.px]="size"
-             src="/avatars/girl.png" alt="" (error)="failed.set(true)" />
-      </span>
-    }
+    <span class="couple-imgs">
+      <pf-avatar class="ca a" [src]="myAvatar()" [fallback]="myFallback()" [size]="size" />
+      <pf-avatar class="ca b" [src]="partnerAvatar()" [fallback]="partnerFallback()" [size]="size" />
+    </span>
   `,
 })
 export class CoupleAvatar {
+  private auth = inject(Auth);
+  private couple = inject(CoupleStore);
   @Input() size = 36;
-  failed = signal(false);
+
+  myAvatar() { return this.auth.user()?.avatarUrl; }
+  partnerAvatar() { return this.couple.couple()?.partner?.avatarUrl; }
+  myFallback(): 'boy' | 'girl' { return this.auth.user()?.gender === 'FEMALE' ? 'girl' : 'boy'; }
+  partnerFallback(): 'boy' | 'girl' { return this.couple.couple()?.partner?.gender === 'MALE' ? 'boy' : 'girl'; }
 }

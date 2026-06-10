@@ -32,7 +32,7 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
       </div>
       <div class="row" style="gap:10px">
         <a routerLink="/us/notifications" class="bell" aria-label="通知"><svg lucideBell size="20"></svg>@if (notif.unread() > 0) { <span class="bell-badge">{{ notif.unread() }}</span> }</a>
-        <pf-couple-avatar [size]="38" />
+        <a routerLink="/me" aria-label="我的檔案"><pf-couple-avatar [size]="38" /></a>
       </div>
     </div>
 

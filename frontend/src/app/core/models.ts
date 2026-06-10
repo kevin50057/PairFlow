@@ -1,11 +1,15 @@
 // API response shapes (mirror the Spring DTOs).
 
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+
 export interface User {
   id: string;
   email: string;
   displayName: string;
   avatarUrl?: string;
   birthday?: string;
+  gender?: Gender;
+  bio?: string;
   timezone: string;
   createdAt: string;
 }

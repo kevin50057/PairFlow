@@ -20,6 +20,7 @@ export const routes: Routes = [
       { path: 'todos/:id', loadComponent: () => import('./pages/todos/todo-detail').then((m) => m.TodoDetailPage) },
       { path: 'calendar', loadComponent: () => import('./pages/calendar/calendar').then((m) => m.CalendarPage) },
       { path: 'memories', loadComponent: () => import('./pages/memories/memories').then((m) => m.MemoriesPage) },
+      { path: 'me', loadComponent: () => import('./pages/profile/profile').then((m) => m.ProfilePage) },
       { path: 'us', loadComponent: () => import('./pages/us/us').then((m) => m.UsPage) },
       { path: 'us/mood', loadComponent: () => import('./pages/us/mood').then((m) => m.MoodPage) },
       { path: 'us/notes', loadComponent: () => import('./pages/us/notes').then((m) => m.NotesPage) },
