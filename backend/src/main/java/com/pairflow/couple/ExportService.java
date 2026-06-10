@@ -60,7 +60,7 @@ public class ExportService {
 
         // Couple metadata
         LocalDate start = couple.getRelationshipStartDate();
-        Long days = start != null ? ChronoUnit.DAYS.between(start, AppTime.today()) : null;
+        Long days = start != null ? ChronoUnit.DAYS.between(start, AppTime.today()) + 1 : null;
         out.put("couple", Map.of(
                 "id", coupleId,
                 "relationshipStartDate", start != null ? start.toString() : "",

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PairFlow ER Model</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root { color-scheme: light; --bg:#f7f3f5; --panel:#fff; --ink:#30282d; --muted:#7f7078; --line:#eadde2; --brand:#b43e61; --soft:#fff2f6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif; color: var(--ink); background: var(--bg); }
+    header { height: 64px; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:0 22px; background:rgba(255,255,255,.86); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:3; backdrop-filter: blur(10px); }
+    h1 { font-size: 18px; margin:0; letter-spacing:.01em; }
+    .meta { color:var(--muted); font-size:13px; }
+    .app { display:grid; grid-template-columns: 280px minmax(0, 1fr); min-height: calc(100vh - 64px); }
+    aside { border-right:1px solid var(--line); background:rgba(255,255,255,.6); padding:16px; position:sticky; top:64px; height:calc(100vh - 64px); overflow:auto; }
+    button.tab { width:100%; border:1px solid var(--line); background:#fff; color:var(--ink); padding:12px 13px; text-align:left; border-radius:12px; font:inherit; font-weight:700; cursor:pointer; margin-bottom:8px; }
+    button.tab.active { background:var(--brand); border-color:var(--brand); color:#fff; }
+    main { padding:18px; overflow:auto; }
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .toolbar h2 { margin:0; font-size:18px; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .actions button { border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 12px; cursor:pointer; font-weight:700; color:var(--ink); }
+    .canvas { background:var(--panel); border:1px solid var(--line); border-radius:16px; min-height:620px; padding:18px; box-shadow:0 12px 34px rgba(71,45,57,.08); overflow:auto; }
+    .canvas-inner { transform-origin: top left; width:max-content; min-width:100%; }
+    .note { background:var(--soft); border:1px solid #f1d7e0; color:var(--brand); padding:10px 12px; border-radius:12px; font-size:13px; margin-bottom:12px; }
+    pre { white-space:pre-wrap; margin:12px 0 0; background:#231f22; color:#fff; padding:14px; border-radius:12px; display:none; }
+    pre.show { display:block; }
+    @media (max-width: 820px) { .app { grid-template-columns: 1fr; } aside { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); display:flex; gap:8px; overflow:auto; } button.tab { white-space:nowrap; width:auto; margin-bottom:0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div><h1>PairFlow ER Model</h1><div class="meta">Generated from er-model.md · logical relationships inferred from DB schema</div></div>
+    <div class="meta">No physical FK constraints in DB</div>
+  </header>
+  <div class="app">
+    <aside id="tabs"></aside>
+    <main>
+      <div class="toolbar">
+        <h2 id="title"></h2>
+        <div class="actions">
+          <button id="zoomOut">Zoom -</button>
+          <button id="zoomIn">Zoom +</button>
+          <button id="reset">Reset</button>
+          <button id="toggleSource">Source</button>
+        </div>
+      </div>
+      <div class="note">Tip: use the tabs to switch domain diagrams. Scroll inside the white canvas for large diagrams.</div>
+      <section class="canvas"><div id="diagram" class="canvas-inner"></div><pre id="source"></pre></section>
+    </main>
+  </div>
+  <script>
+    const diagrams = [{"title":"Core Relationship Map","code":"erDiagram\n  users ||--o{ refresh_tokens : \"user_id\"\n  users ||--o{ user_devices : \"user_id\"\n  users ||--o{ notification_preferences : \"user_id\"\n  users ||--o{ notifications : \"recipient_id\"\n  users ||--o{ audit_logs : \"actor_id\"\n\n  users ||--o{ couples : \"useraid\"\n  users ||--o{ couples : \"userbid\"\n  users ||--o{ couple_invites : \"inviter_user_id\"\n  users ||--o{ couple_invites : \"accepted_by_user_id\"\n  couples ||--o{ couple_invites : \"couple_id\"\n  couples ||--o{ pending_breakups : \"couple_id\"\n  users ||--o{ pending_breakups : \"initiator_id\"\n  users ||--o{ pending_breakups : \"confirmed_by_id\"\n\n  couples ||--o{ todos : \"couple_id\"\n  users ||--o{ todos : \"created_by\"\n  users ||--o{ todos : \"assignee_user_id\"\n  todos ||--o{ todo_checklist_items : \"todo_id\"\n  todos ||--o{ todo_comments : \"todo_id\"\n  users ||--o{ todo_comments : \"author_id\"\n\n  couples ||--o{ anniversaries : \"couple_id\"\n  users ||--o{ anniversaries : \"created_by\"\n  couples ||--o{ events : \"couple_id\"\n  users ||--o{ events : \"created_by\"\n  events ||--o{ todos : \"related_event_id\"\n  anniversaries ||--o{ todos : \"related_anniversary_id\"\n\n  couples ||--o{ mood_entries : \"couple_id\"\n  users ||--o{ mood_entries : \"user_id\"\n  mood_entries ||--o{ mood_reactions : \"mood_entry_id\"\n  users ||--o{ mood_reactions : \"user_id\"\n\n  couples ||--o{ notes : \"couple_id\"\n  users ||--o{ notes : \"sender_id\"\n  users ||--o{ notes : \"receiver_id\"\n\n  couples ||--o{ albums : \"couple_id\"\n  users ||--o{ albums : \"created_by\"\n  albums ||--o{ photos : \"album_id\"\n  couples ||--o{ photos : \"couple_id\"\n  users ||--o{ photos : \"uploader_id\"\n\n  question_cards ||--o{ daily_questions : \"question_card_id\"\n  couples ||--o{ daily_questions : \"couple_id\"\n  daily_questions ||--o{ question_answers : \"daily_question_id\"\n  users ||--o{ question_answers : \"user_id\"\n\n  couples ||--o{ wishes : \"couple_id\"\n  users ||--o{ wishes : \"added_by\"\n  todos ||--o{ wishes : \"converted_todo_id\"\n\n  couples ||--o{ expenses : \"couple_id\"\n  users ||--o{ expenses : \"created_by\"\n  users ||--o{ expenses : \"paid_by_user_id\"\n  events ||--o{ expenses : \"related_event_id\"\n\n  couples ||--o{ date_plans : \"couple_id\"\n  users ||--o{ date_plans : \"created_by\"\n  date_plans ||--o{ date_candidates : \"plan_id\"\n  users ||--o{ date_candidates : \"added_by\"\n  date_candidates ||--o{ date_votes : \"candidate_id\"\n  users ||--o{ date_votes : \"user_id\"\n  date_candidates ||--o{ date_plans : \"chosen_candidate_id\"\n  events ||--o{ date_plans : \"scheduled_event_id\"\n\n  couples ||--o{ repair_sessions : \"couple_id\"\n  users ||--o{ repair_sessions : \"initiator_id\"\n  users ||--o{ repair_sessions : \"responder_id\"\n\n  couples ||--o{ notifications : \"couple_id\"\n  couples ||--o{ audit_logs : \"couple_id\""},{"title":"Auth And Couple","code":"erDiagram\n  users {\n    varchar id PK\n    varchar email UK\n    varchar display_name\n    varchar password_hash\n    varchar timezone\n    date birthday\n    varchar gender\n    varchar avatar_url\n    varchar bio\n    timestamptz created_at\n    timestamptz updated_at\n  }\n\n  refresh_tokens {\n    varchar id PK\n    varchar user_id\n    varchar token_hash UK\n    timestamptz expires_at\n    boolean revoked\n    timestamptz revoked_at\n  }\n\n  couples {\n    varchar id PK\n    varchar useraid\n    varchar userbid\n    date relationship_start_date\n    varchar status\n    varchar data_handling\n    timestamptz ended_at\n  }\n\n  couple_invites {\n    varchar id PK\n    varchar code UK\n    varchar inviter_user_id\n    varchar accepted_by_user_id\n    varchar couple_id\n    varchar status\n    timestamptz expires_at\n  }\n\n  pending_breakups {\n    varchar id PK\n    varchar couple_id\n    varchar initiator_id\n    varchar confirmed_by_id\n    varchar data_handling\n    boolean confirmed\n    boolean cancelled\n    timestamptz expires_at\n  }\n\n  users ||--o{ refresh_tokens : owns\n  users ||--o{ couples : useraid\n  users ||--o{ couples : userbid\n  users ||--o{ couple_invites : creates\n  users ||--o{ couple_invites : accepts\n  couples ||--o{ couple_invites : creates\n  couples ||--o{ pending_breakups : has\n  users ||--o{ pending_breakups : initiates\n  users ||--o{ pending_breakups : confirms"},{"title":"Daily Work And Calendar","code":"erDiagram\n  todos {\n    varchar id PK\n    varchar couple_id\n    varchar created_by\n    varchar assignee_user_id\n    varchar title\n    varchar status\n    varchar type\n    varchar priority\n    timestamptz due_date\n    boolean assigned_to_both\n    boolean secret\n    timestamptz secret_unlock_at\n    double goal_target\n    double goal_current\n    varchar goal_unit\n    varchar related_event_id\n    varchar related_anniversary_id\n  }\n\n  todo_checklist_items {\n    varchar id PK\n    varchar todo_id\n    varchar title\n    boolean completed\n    int sort_order\n  }\n\n  todo_comments {\n    varchar id PK\n    varchar todo_id\n    varchar author_id\n    varchar content\n  }\n\n  anniversaries {\n    varchar id PK\n    varchar couple_id\n    varchar created_by\n    varchar title\n    date date\n    varchar repeat_type\n    varchar reminder_days_before_csv\n  }\n\n  events {\n    varchar id PK\n    varchar couple_id\n    varchar created_by\n    varchar title\n    varchar event_type\n    timestamptz start_time\n    timestamptz end_time\n    varchar location_name\n    varchar related_album_id\n    varchar related_todo_id\n  }\n\n  couples ||--o{ todos : owns\n  users ||--o{ todos : creates\n  users ||--o{ todos : assigned\n  todos ||--o{ todo_checklist_items : has\n  todos ||--o{ todo_comments : has\n  users ||--o{ todo_comments : writes\n  couples ||--o{ anniversaries : owns\n  users ||--o{ anniversaries : creates\n  couples ||--o{ events : owns\n  users ||--o{ events : creates\n  events ||--o{ todos : related\n  anniversaries ||--o{ todos : related"},{"title":"Emotional And Memory Layer","code":"erDiagram\n  mood_entries {\n    varchar id PK\n    varchar couple_id\n    varchar user_id\n    varchar mood\n    varchar emoji\n    varchar note\n    boolean need_response\n  }\n\n  mood_reactions {\n    varchar id PK\n    varchar mood_entry_id\n    varchar user_id\n    varchar reaction\n  }\n\n  notes {\n    varchar id PK\n    varchar couple_id\n    varchar sender_id\n    varchar receiver_id\n    varchar note_type\n    varchar title\n    varchar content\n    timestamptz unlock_time\n    boolean is_read\n    boolean is_favorite\n    timestamptz read_at\n  }\n\n  albums {\n    varchar id PK\n    varchar couple_id\n    varchar created_by\n    varchar title\n    varchar cover_photo_url\n  }\n\n  photos {\n    varchar id PK\n    varchar couple_id\n    varchar album_id\n    varchar uploader_id\n    varchar image_url\n    varchar storage_key\n    varchar thumbnail_url\n    timestamptz taken_at\n    boolean is_favorite\n  }\n\n  couples ||--o{ mood_entries : owns\n  users ||--o{ mood_entries : writes\n  mood_entries ||--o{ mood_reactions : has\n  users ||--o{ mood_reactions : reacts\n  couples ||--o{ notes : owns\n  users ||--o{ notes : sends\n  users ||--o{ notes : receives\n  couples ||--o{ albums : owns\n  users ||--o{ albums : creates\n  albums ||--o{ photos : contains\n  couples ||--o{ photos : owns\n  users ||--o{ photos : uploads"},{"title":"Daily Questions","code":"erDiagram\n  question_cards {\n    varchar id PK\n    varchar text\n    varchar category\n    varchar sensitivity\n  }\n\n  daily_questions {\n    varchar id PK\n    varchar couple_id\n    varchar question_card_id\n    date date\n    boolean is_favorite\n  }\n\n  question_answers {\n    varchar id PK\n    varchar daily_question_id\n    varchar user_id\n    varchar answer\n  }\n\n  couples ||--o{ daily_questions : receives\n  question_cards ||--o{ daily_questions : selected\n  daily_questions ||--o{ question_answers : has\n  users ||--o{ question_answers : writes"},{"title":"Planning, Money, Repair, Notification","code":"erDiagram\n  wishes {\n    varchar id PK\n    varchar couple_id\n    varchar added_by\n    varchar title\n    varchar category\n    varchar status\n    varchar priority\n    varchar converted_todo_id\n    timestamptz completed_at\n  }\n\n  expenses {\n    varchar id PK\n    varchar couple_id\n    varchar created_by\n    varchar paid_by_user_id\n    varchar related_event_id\n    varchar category\n    varchar split_type\n    double amount\n    double custom_payer_ratio\n    timestamptz spent_at\n  }\n\n  date_plans {\n    varchar id PK\n    varchar couple_id\n    varchar created_by\n    varchar title\n    varchar date_type\n    varchar budget_level\n    varchar status\n    varchar chosen_candidate_id\n    varchar scheduled_event_id\n  }\n\n  date_candidates {\n    varchar id PK\n    varchar plan_id\n    varchar added_by\n    varchar title\n    varchar location\n  }\n\n  date_votes {\n    varchar id PK\n    varchar candidate_id\n    varchar user_id\n    varchar vote\n  }\n\n  repair_sessions {\n    varchar id PK\n    varchar couple_id\n    varchar initiator_id\n    varchar responder_id\n    varchar state\n    varchar status\n    boolean flagged\n    varchar feelings\n    varchar softened_message\n    varchar response_type\n  }\n\n  notifications {\n    varchar id PK\n    varchar couple_id\n    varchar recipient_id\n    varchar type\n    varchar title\n    varchar related_type\n    varchar related_id\n    boolean is_read\n    timestamptz read_at\n  }\n\n  notification_preferences {\n    varchar id PK\n    varchar user_id UK\n    varchar disabled_types_csv\n  }\n\n  audit_logs {\n    varchar id PK\n    varchar actor_id\n    varchar couple_id\n    varchar action\n    varchar target_type\n    varchar target_id\n    varchar ip_address\n  }\n\n  couples ||--o{ wishes : owns\n  users ||--o{ wishes : adds\n  todos ||--o{ wishes : converted_from\n  couples ||--o{ expenses : owns\n  users ||--o{ expenses : creates\n  users ||--o{ expenses : pays\n  events ||--o{ expenses : related\n  couples ||--o{ date_plans : owns\n  users ||--o{ date_plans : creates\n  date_plans ||--o{ date_candidates : has\n  users ||--o{ date_candidates : adds\n  date_candidates ||--o{ date_votes : receives\n  users ||--o{ date_votes : votes\n  date_candidates ||--o{ date_plans : chosen\n  events ||--o{ date_plans : scheduled\n  couples ||--o{ repair_sessions : owns\n  users ||--o{ repair_sessions : initiates\n  users ||--o{ repair_sessions : responds\n  couples ||--o{ notifications : scopes\n  users ||--o{ notifications : receives\n  users ||--o{ notification_preferences : configures\n  users ||--o{ audit_logs : acts\n  couples ||--o{ audit_logs : scopes"}];
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'base', themeVariables: { primaryColor: '#fff8fa', primaryTextColor: '#30282d', primaryBorderColor: '#d9c8cf', lineColor: '#8c7781', fontFamily: 'Inter, Noto Sans TC, sans-serif' } });
+    const tabs = document.getElementById('tabs');
+    const title = document.getElementById('title');
+    const diagram = document.getElementById('diagram');
+    const source = document.getElementById('source');
+    let active = 0;
+    let zoom = 1;
+    diagrams.forEach((d, i) => {
+      const b = document.createElement('button');
+      b.className = 'tab';
+      b.textContent = d.title;
+      b.onclick = () => render(i);
+      tabs.appendChild(b);
+    });
+    async function render(i) {
+      active = i; zoom = 1;
+      [...tabs.children].forEach((b, idx) => b.classList.toggle('active', idx === i));
+      title.textContent = diagrams[i].title;
+      source.textContent = diagrams[i].code;
+      source.classList.remove('show');
+      const id = 'erd-' + i + '-' + Date.now();
+      const result = await mermaid.render(id, diagrams[i].code);
+      diagram.innerHTML = result.svg;
+      applyZoom();
+    }
+    function applyZoom() { diagram.style.transform = 'scale(' + zoom + ')'; }
+    document.getElementById('zoomOut').onclick = () => { zoom = Math.max(.45, +(zoom - .1).toFixed(2)); applyZoom(); };
+    document.getElementById('zoomIn').onclick = () => { zoom = Math.min(2, +(zoom + .1).toFixed(2)); applyZoom(); };
+    document.getElementById('reset').onclick = () => { zoom = 1; applyZoom(); };
+    document.getElementById('toggleSource').onclick = () => source.classList.toggle('show');
+    render(0);
+  </script>
+</body>
+</html>

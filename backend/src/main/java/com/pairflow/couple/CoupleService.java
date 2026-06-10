@@ -246,7 +246,7 @@ public class CoupleService {
         String partnerId = couple.partnerOf(viewerUserId);
         User partner = userRepository.findById(partnerId).orElse(null);
         LocalDate start = couple.getRelationshipStartDate();
-        Long daysTogether = start != null ? ChronoUnit.DAYS.between(start, AppTime.today()) : null;
+        Long daysTogether = start != null ? ChronoUnit.DAYS.between(start, AppTime.today()) + 1 : null;
         return new CoupleResponse(
                 couple.getId(),
                 partner != null ? UserResponse.from(partner) : null,
