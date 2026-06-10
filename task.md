@@ -3,7 +3,7 @@
 全端情侶協作 App（**Couple OS**）。後端 **Spring Boot 3.4 / Java 21**、前端 **Angular 21**，
 依產品 spec 從頭實作並逐項驗證，已推上 GitHub：`github.com/kevin50057/PairFlow`。
 
-示範帳號（DB 空時自動建立）：`kevin@pairflow.test` / `ying@pairflow.test`，密碼 `secret123`。
+示範帳號（DB 空時自動建立）：`kevin@pairflow.test` / `fishball@pairflow.test`，密碼 `secret123`。
 
 ---
 
@@ -50,6 +50,8 @@
 - [x] **DB 改為 PostgreSQL 16 + Flyway**（`V1__init.sql`、`ddl-auto=validate`；保留 H2 fallback profile）— 徹底解決 enum schema 演進問題
 - [x] **無期限任務分頁** — Todo 新增「想到再做」分頁（後端 `GET /todos?undated=true`），沒有截止時間的任務變一等公民（也仍可設時間）
 - [x] **「未來一起做的事」** — 願望清單改名為「未來一起做的事」、移到「我們」頁最上方，並在**首頁加卡片**（例：一起看煙火、一起去看極光）
+- [x] **行事曆改成主流月曆** — 月格子視圖（上/下月切換、回今天）、今天高亮、各分類顏色圓點、底部圖例；點某天 → 看當天行程＋底部彈窗新增（類別/時間/整天/地點/備註）、可刪除；紀念日與雙方生日也標在格子上
+- [x] **倒數顯示修正** — 0 天改顯示「今天」、1 天顯示「明天」，日期改成「6 月 10 日 · 週三」可讀格式
 - [x] **每日問題彈窗** — 每天第一次進來自動彈出今日問題，兩人都回答後解鎖
 - [x] **Lucide 線條 icon ＋ 粉色主題** — 全站 icon 系統與配色更新；卡通情侶大頭貼為預設
 - [x] **一鍵啟動** — `./start.sh`（Postgres→後端→前端）、`./stop.sh`；README 補繁中「怎麼啟動/怎麼用」

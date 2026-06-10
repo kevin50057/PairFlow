@@ -58,7 +58,7 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
             </a>
             <a class="summary-item" routerLink="/calendar">
               <div class="metric-row"><span>下一紀念日</span><svg lucideClock size="18"></svg></div>
-              <b>{{ home()?.nextAnniversary?.daysLeft ?? '-' }}</b>
+              <b>{{ nextDayLabel() }}</b>
             </a>
           </div>
         </div>
@@ -112,8 +112,11 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
           <div class="card">
             <div class="section-title" style="margin-top:0">下一個重要日子</div>
             <div class="between">
-              <div><b>{{ a.title }}</b><div class="muted small">{{ a.date }}</div></div>
-              <div class="center-text"><div class="hero-day" style="font-size:1.5rem">{{ a.daysLeft }}</div><div class="tiny muted">天後</div></div>
+              <div><b>{{ a.title }}</b><div class="muted small">{{ niceDate(a.date) }}</div></div>
+              <div class="center-text">
+                <div class="hero-day" style="font-size:1.5rem">{{ a.daysLeft === 0 ? '今天' : a.daysLeft === 1 ? '明天' : a.daysLeft }}</div>
+                @if (a.daysLeft > 1) { <div class="tiny muted">天後</div> }
+              </div>
             </div>
           </div>
         }
@@ -201,6 +204,16 @@ export class HomePage implements OnInit {
 
   label(code: string) { return MOOD[code]?.label ?? code; }
   emoji(code: string) { return MOOD[code]?.emoji ?? '🙂'; }
+  nextDayLabel(): string {
+    const a = this.home()?.nextAnniversary;
+    if (!a) return '-';
+    return a.daysLeft === 0 ? '今天' : a.daysLeft === 1 ? '明天' : String(a.daysLeft);
+  }
+  niceDate(iso?: string): string {
+    if (!iso) return '';
+    const d = new Date(iso.length === 10 ? iso + 'T00:00:00' : iso);
+    return d.toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'short' });
+  }
   assignee(t: Todo) { return t.assignee === 'me' ? '我' : t.assignee === 'partner' ? '對方' : t.assignee === 'both' ? '一起' : ''; }
   time(iso: string) { return new Date(iso).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }); }
   dailyHeadline() {
