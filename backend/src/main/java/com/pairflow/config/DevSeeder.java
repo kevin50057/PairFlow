@@ -38,6 +38,8 @@ import java.time.LocalDate;
 @ConditionalOnProperty(name = "pairflow.seed-demo", havingValue = "true", matchIfMissing = true)
 public class DevSeeder implements ApplicationRunner {
 
+    private static final LocalDate DEMO_RELATIONSHIP_START = LocalDate.of(2026, 6, 10);
+
     private final UserRepository userRepository;
     private final CoupleRepository coupleRepository;
     private final AnniversaryRepository anniversaryRepository;
@@ -61,33 +63,33 @@ public class DevSeeder implements ApplicationRunner {
         if (userRepository.count() > 0) {
             return;
         }
-        log.info("Seeding demo couple (kevin@pairflow.test / ying@pairflow.test, password: secret123)");
+        log.info("Seeding demo couple (kevin@pairflow.test / fishBall@pairflow.test, password: secret123)");
 
         User kevin = user("kevin@pairflow.test", "Kevin");
-        kevin.setBirthday(LocalDate.of(1995, 9, 20));
+        kevin.setBirthday(LocalDate.of(1996, 4, 14));
         kevin.setGender(Gender.MALE);
         kevin.setAvatarUrl("/avatars/boy.png");
-        kevin.setBio("工程師魂，但更想當你的隊友 👨‍💻");
+        kevin.setBio("愛吃、愛睡、愛你💻");
 
-        User ying = user("ying@pairflow.test", "魚丸");
-        ying.setBirthday(LocalDate.of(1996, 6, 13));
-        ying.setGender(Gender.FEMALE);
-        ying.setAvatarUrl("/avatars/girl.png");
-        ying.setBio("愛吃、愛睡、愛你 🐟");
+        User fishBall = user("fishBall@pairflow.test", "魚丸");
+        fishBall.setBirthday(LocalDate.of(1997, 7, 10));
+        fishBall.setGender(Gender.FEMALE);
+        fishBall.setAvatarUrl("/avatars/girl.png");
+        fishBall.setBio(" 🐟");
 
         userRepository.save(kevin);
-        userRepository.save(ying);
+        userRepository.save(fishBall);
 
         Couple couple = new Couple();
         couple.setUserAId(kevin.getId());
-        couple.setUserBId(ying.getId());
+        couple.setUserBId(fishBall.getId());
         couple.setStatus(CoupleStatus.ACTIVE);
-        couple.setRelationshipStartDate(LocalDate.of(2025, 5, 11));
+        couple.setRelationshipStartDate(DEMO_RELATIONSHIP_START);
         couple = coupleRepository.save(couple);
         String coupleId = couple.getId();
 
         // 生日改由個人檔案的 birthday 欄位自動帶入倒數與通知，不再手動建立紀念日。
-        anniversaryRepository.save(anniversary(coupleId, kevin.getId(), "交往紀念日", LocalDate.of(2025, 5, 11)));
+        anniversaryRepository.save(anniversary(coupleId, kevin.getId(), "交往紀念日", DEMO_RELATIONSHIP_START));
 
         Todo todo = new Todo();
         todo.setCoupleId(coupleId);
@@ -101,7 +103,7 @@ public class DevSeeder implements ApplicationRunner {
 
         MoodEntry mood = new MoodEntry();
         mood.setCoupleId(coupleId);
-        mood.setUserId(ying.getId());
+        mood.setUserId(fishBall.getId());
         mood.setMood(MoodType.TIRED);
         mood.setEmoji("😮‍💨");
         mood.setNote("今天有點累");
