@@ -327,6 +327,12 @@ p { margin: 0 0 .5rem; }
   max-width: 88%; min-height: 7px; }
 .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex: none; }
 .dot.lg { width: 9px; height: 9px; }
+.dot.ring { background: transparent; border: 1.6px solid var(--primary-ink); }
+.dot.ring.done { border-color: var(--muted); opacity: .5; }
+.auto-badge { display: inline-flex; align-items: center; gap: 3px; background: var(--primary-soft); color: var(--primary-ink);
+  border-radius: 999px; padding: 1px 7px; font-weight: 700; }
+.auto-row { font-size: .85rem; color: var(--text); background: var(--primary-softer); border: 1px solid var(--primary-soft);
+  border-radius: var(--radius-sm); padding: 10px 12px; }
 .cal-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
 .leg { display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; color: var(--muted); font-weight: 600; }
 .icon-btn { border: none; background: transparent; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 8px; display: inline-flex; }

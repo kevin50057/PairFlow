@@ -52,6 +52,10 @@ public class Todo extends BaseEntity {
     private Instant dueDate;
     private Instant reminderTime;
 
+    /** When true and {@link #dueDate} passes, the scheduler auto-marks this todo DONE (預計綁定行事曆). */
+    @Column(nullable = false)
+    private boolean autoComplete = false;
+
     /** Simple recurrence hint, e.g. "WEEKLY:MON" or "MONTHLY:1" (spec 7.3 #4). */
     private String repeatRule;
 

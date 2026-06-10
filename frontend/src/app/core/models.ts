@@ -40,6 +40,7 @@ export interface Todo {
   assignedToBoth: boolean;
   dueDate?: string;
   reminderTime?: string;
+  autoComplete?: boolean;
   isSecret: boolean;
   relatedEventId?: string;
   goalTarget?: number;

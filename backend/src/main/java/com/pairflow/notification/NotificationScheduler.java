@@ -129,6 +129,29 @@ public class NotificationScheduler {
         log.info("[scheduler] todo due reminders: {} todos checked", dueSoon.size());
     }
 
+    /**
+     * Auto-complete todos that are bound to the calendar (autoComplete=true) once their
+     * due time passes. Runs every minute so completion feels prompt.
+     */
+    @Scheduled(fixedRate = 60_000)
+    @Transactional
+    public void autoCompleteDueTodos() {
+        List<Todo> due = todoRepository.findByStatusAndAutoCompleteTrueAndDueDateLessThanEqual(
+                TodoStatus.PENDING, Instant.now());
+        if (due.isEmpty()) return;
+        for (Todo todo : due) {
+            todo.setStatus(TodoStatus.DONE);
+            todo.setCompletedAt(Instant.now());
+            Couple couple = coupleRepository.findById(todo.getCoupleId()).orElse(null);
+            if (couple != null) {
+                notifyBoth(couple, NotificationType.TODO_COMPLETED, "任務已自動完成",
+                        "「" + todo.getTitle() + "」時間到，已自動標記完成 ✓", "TODO", todo.getId());
+            }
+        }
+        todoRepository.saveAll(due);
+        log.info("[scheduler] auto-completed {} due todos", due.size());
+    }
+
     private void notifyBoth(Couple couple, NotificationType type,
                             String title, String body, String relatedType, String relatedId) {
         notificationService.notify(couple.getId(), couple.getUserAId(), type, title, body, relatedType, relatedId);

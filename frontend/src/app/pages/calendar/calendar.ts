@@ -1,13 +1,13 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { LucideChevronLeft, LucideChevronRight, LucideMapPin, LucidePlus, LucideTrash2, LucideX } from '@lucide/angular';
+import { LucideChevronLeft, LucideChevronRight, LucideClock, LucideMapPin, LucidePencil, LucidePlus, LucideTrash2, LucideX } from '@lucide/angular';
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { CoupleStore } from '../../core/couple';
-import { Anniversary, EventItem } from '../../core/models';
+import { Anniversary, EventItem, Todo } from '../../core/models';
 
 type Marker = { label: string; color: string };
-type Cell = { key: string; day: number; inMonth: boolean; isToday: boolean; events: EventItem[]; markers: Marker[] };
+type Cell = { key: string; day: number; inMonth: boolean; isToday: boolean; events: EventItem[]; todos: Todo[]; markers: Marker[] };
 
 const TYPES: [string, string, string][] = [
   ['DATE', '約會', 'var(--primary)'],
@@ -21,20 +21,25 @@ const BIRTHDAY_COLOR = '#e8a13a';
 
 @Component({
   selector: 'pf-calendar',
-  imports: [FormsModule, LucideChevronLeft, LucideChevronRight, LucideMapPin, LucidePlus, LucideTrash2, LucideX],
+  imports: [FormsModule, LucideChevronLeft, LucideChevronRight, LucideClock, LucideMapPin, LucidePencil, LucidePlus, LucideTrash2, LucideX],
   template: `
     <div class="appbar">
       <h1>行事曆</h1>
-      <button class="chip" (click)="goToday()">今天</button>
+      <div class="row" style="gap:6px">
+        <div class="seg" style="width:auto">
+          <button class="seg-btn" [class.sel]="view() === 'month'" (click)="setView('month')">月</button>
+          <button class="seg-btn" [class.sel]="view() === 'week'" (click)="setView('week')">週</button>
+        </div>
+        <button class="chip" (click)="goToday()">今天</button>
+      </div>
     </div>
 
     <div class="screen stack" style="padding-top:8px">
-      <!-- month grid -->
       <div class="card" style="padding:12px">
         <div class="cal-head">
-          <button class="cal-nav" (click)="shiftMonth(-1)" aria-label="上個月"><svg lucideChevronLeft size="20"></svg></button>
-          <div class="cal-title">{{ monthLabel() }}</div>
-          <button class="cal-nav" (click)="shiftMonth(1)" aria-label="下個月"><svg lucideChevronRight size="20"></svg></button>
+          <button class="cal-nav" (click)="shift(-1)" aria-label="上一頁"><svg lucideChevronLeft size="20"></svg></button>
+          <div class="cal-title">{{ periodLabel() }}</div>
+          <button class="cal-nav" (click)="shift(1)" aria-label="下一頁"><svg lucideChevronRight size="20"></svg></button>
         </div>
 
         <div class="cal-grid cal-dow">
@@ -47,7 +52,8 @@ const BIRTHDAY_COLOR = '#e8a13a';
               <span class="cal-d">{{ c.day }}</span>
               <span class="cal-dots">
                 @for (m of c.markers; track $index) { <i class="dot" [style.background]="m.color"></i> }
-                @for (e of c.events.slice(0, 4 - c.markers.length); track e.id) { <i class="dot" [style.background]="color(e.eventType)"></i> }
+                @for (e of c.events.slice(0, 3); track e.id) { <i class="dot" [style.background]="color(e.eventType)"></i> }
+                @for (t of c.todos.slice(0, 2); track t.id) { <i class="dot ring" [class.done]="t.status === 'DONE'"></i> }
               </span>
             </button>
           }
@@ -55,10 +61,11 @@ const BIRTHDAY_COLOR = '#e8a13a';
 
         <div class="cal-legend">
           @for (t of types; track t[0]) { <span class="leg"><i class="dot" [style.background]="t[2]"></i>{{ t[1] }}</span> }
+          <span class="leg"><i class="dot ring"></i>任務</span>
         </div>
       </div>
 
-      <!-- selected day detail -->
+      <!-- selected day agenda -->
       <div class="card">
         <div class="between">
           <div class="section-title" style="margin:0">{{ selectedLabel() }}</div>
@@ -67,36 +74,45 @@ const BIRTHDAY_COLOR = '#e8a13a';
         <hr class="dashed" />
 
         @for (m of selectedMarkers(); track $index) {
-          <div class="row" style="margin:8px 0">
-            <i class="dot lg" [style.background]="m.color"></i>
-            <b class="grow">{{ m.label }}</b>
-          </div>
+          <div class="row" style="margin:8px 0"><i class="dot lg" [style.background]="m.color"></i><b class="grow">{{ m.label }}</b></div>
         }
         @for (e of selectedEvents(); track e.id) {
-          <div class="row" style="margin:10px 0;align-items:flex-start">
+          <div class="row" style="margin:10px 0;align-items:flex-start" (click)="openEdit(e)">
             <i class="dot lg" [style.background]="color(e.eventType)" style="margin-top:6px"></i>
             <div class="grow">
               <b>{{ e.title }}</b>
               <div class="tiny muted">{{ timeRange(e) }} · {{ typeLabel(e.eventType) }}</div>
               @if (e.locationName) { <div class="tiny muted"><svg lucideMapPin size="12"></svg> {{ e.locationName }}</div> }
-              @if (e.description) { <div class="small" style="margin-top:2px">{{ e.description }}</div> }
             </div>
-            <button class="icon-btn" (click)="remove(e)" aria-label="刪除"><svg lucideTrash2 size="16"></svg></button>
+            <button class="icon-btn" (click)="$event.stopPropagation(); openEdit(e)" aria-label="編輯"><svg lucidePencil size="15"></svg></button>
+            <button class="icon-btn" (click)="$event.stopPropagation(); removeEvent(e)" aria-label="刪除"><svg lucideTrash2 size="15"></svg></button>
           </div>
         }
-        @if (!selectedMarkers().length && !selectedEvents().length) {
+        @for (t of selectedTodos(); track t.id) {
+          <div class="row" style="margin:10px 0;align-items:flex-start">
+            <span class="todo-check" [class.done]="t.status === 'DONE'" (click)="toggleTodo(t)" style="margin-top:2px">@if (t.status === 'DONE') { ✓ }</span>
+            <div class="grow">
+              <b [class.strike]="t.status === 'DONE'">{{ t.title }}</b>
+              <div class="tiny muted row" style="gap:6px">
+                <span>{{ todoTime(t) }} · 任務</span>
+                @if (t.autoComplete) { <span class="auto-badge"><svg lucideClock size="11"></svg> 到時間自動完成</span> }
+              </div>
+            </div>
+          </div>
+        }
+        @if (!selectedMarkers().length && !selectedEvents().length && !selectedTodos().length) {
           <p class="muted small" style="margin:6px 0">這天還沒有安排，點「新增」加一個吧 🌷</p>
         }
       </div>
     </div>
 
-    <!-- create sheet -->
-    @if (showCreate()) {
-      <div class="sheet-backdrop" (click)="showCreate.set(false)"></div>
+    <!-- create / edit sheet -->
+    @if (showSheet()) {
+      <div class="sheet-backdrop" (click)="showSheet.set(false)"></div>
       <div class="sheet">
         <div class="between">
-          <b>新增行程 · {{ selectedLabel() }}</b>
-          <button class="icon-btn" (click)="showCreate.set(false)"><svg lucideX size="18"></svg></button>
+          <b>{{ editId() ? '編輯行程' : '新增行程' }} · {{ selectedLabel() }}</b>
+          <button class="icon-btn" (click)="showSheet.set(false)"><svg lucideX size="18"></svg></button>
         </div>
         <div class="stack" style="margin-top:12px">
           <input class="input" placeholder="行程標題" name="t" [(ngModel)]="f.title" />
@@ -110,13 +126,13 @@ const BIRTHDAY_COLOR = '#e8a13a';
             </div>
           </div>
           <div class="grid2">
-            <div><div class="label">開始</div><input class="input" type="time" name="st" [(ngModel)]="f.startTime" /></div>
-            <div><div class="label">結束（選填）</div><input class="input" type="time" name="et" [(ngModel)]="f.endTime" /></div>
+            <div><div class="label">開始</div><input class="input" type="time" name="st" [(ngModel)]="f.startTime" [disabled]="f.allDay" /></div>
+            <div><div class="label">結束（選填）</div><input class="input" type="time" name="et" [(ngModel)]="f.endTime" [disabled]="f.allDay" /></div>
           </div>
           <label class="row" style="gap:8px"><input type="checkbox" name="ad" [(ngModel)]="f.allDay" /> 整天</label>
           <input class="input" placeholder="地點（選填）" name="loc" [(ngModel)]="f.locationName" />
           <input class="input" placeholder="備註（選填）" name="desc" [(ngModel)]="f.description" />
-          <button class="btn btn-primary btn-block" (click)="create()" [disabled]="saving()">{{ saving() ? '新增中…' : '新增行程' }}</button>
+          <button class="btn btn-primary btn-block" (click)="save()" [disabled]="saving()">{{ saving() ? '儲存中…' : (editId() ? '儲存' : '新增行程') }}</button>
         </div>
       </div>
     }
@@ -130,104 +146,133 @@ export class CalendarPage implements OnInit {
   dow = ['日', '一', '二', '三', '四', '五', '六'];
   types = TYPES;
 
-  viewMonth = signal(startOfMonth(new Date()));
+  view = signal<'month' | 'week'>('month');
+  cursor = signal(new Date());
   events = signal<EventItem[]>([]);
+  todos = signal<Todo[]>([]);
   annivs = signal<Anniversary[]>([]);
   selected = signal(dateKey(new Date()));
-  showCreate = signal(false);
+  showSheet = signal(false);
+  editId = signal<string | null>(null);
   saving = signal(false);
   f = { title: '', eventType: 'DATE', startTime: '', endTime: '', allDay: false, locationName: '', description: '' };
 
-  monthLabel = computed(() => this.viewMonth().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' }));
-
-  private eventsByDay = computed(() => {
-    const map = new Map<string, EventItem[]>();
-    for (const e of this.events()) {
-      const k = dateKey(new Date(e.startTime));
-      (map.get(k) ?? map.set(k, []).get(k)!).push(e);
+  private range = computed<[Date, Date]>(() => {
+    const c = this.cursor();
+    if (this.view() === 'week') {
+      const start = new Date(c); start.setDate(c.getDate() - c.getDay()); start.setHours(0, 0, 0, 0);
+      const end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23, 59, 59);
+      return [start, end];
     }
-    for (const list of map.values()) list.sort((a, b) => +new Date(a.startTime) - +new Date(b.startTime));
-    return map;
+    const first = new Date(c.getFullYear(), c.getMonth(), 1);
+    const start = new Date(first); start.setDate(1 - first.getDay());
+    const last = new Date(c.getFullYear(), c.getMonth() + 1, 0);
+    const end = new Date(last); end.setDate(last.getDate() + (6 - last.getDay())); end.setHours(23, 59, 59);
+    return [start, end];
   });
+
+  periodLabel = computed(() => {
+    const c = this.cursor();
+    if (this.view() === 'month') return c.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' });
+    const [s, e] = this.range();
+    return `${s.toLocaleDateString('zh-TW', { month: 'long', day: 'numeric' })}–${e.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' })}`;
+  });
+
+  private eventsByDay = computed(() => groupByDay(this.events(), (e) => e.startTime));
+  private todosByDay = computed(() => groupByDay(this.todos(), (t) => t.dueDate));
 
   private recurring = computed<{ md: string; marker: Marker }[]>(() => {
     const out: { md: string; marker: Marker }[] = [];
-    for (const a of this.annivs()) {
-      out.push({ md: (a.date ?? '').slice(5), marker: { label: a.title, color: 'var(--danger)' } });
-    }
-    const me = this.auth.user();
-    const partner = this.couple.couple()?.partner;
-    for (const u of [me, partner]) {
+    for (const a of this.annivs()) out.push({ md: (a.date ?? '').slice(5), marker: { label: a.title, color: 'var(--danger)' } });
+    for (const u of [this.auth.user(), this.couple.couple()?.partner]) {
       if (u?.birthday) out.push({ md: u.birthday.slice(5), marker: { label: u.displayName + ' 生日', color: BIRTHDAY_COLOR } });
     }
     return out;
   });
-
   private markersFor(key: string): Marker[] {
     const md = key.slice(5);
     return this.recurring().filter((r) => r.md === md).map((r) => r.marker);
   }
 
   grid = computed<Cell[]>(() => {
-    const vm = this.viewMonth();
-    const m = vm.getMonth();
-    const start = new Date(vm); start.setDate(1 - vm.getDay());
-    const last = new Date(vm.getFullYear(), m + 1, 0);
-    const end = new Date(last); end.setDate(last.getDate() + (6 - last.getDay()));
+    const [start, end] = this.range();
+    const month = this.cursor().getMonth();
     const evMap = this.eventsByDay();
+    const tdMap = this.todosByDay();
     const todayKey = dateKey(new Date());
     const cells: Cell[] = [];
     for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const key = dateKey(d);
       cells.push({
-        key, day: d.getDate(), inMonth: d.getMonth() === m, isToday: key === todayKey,
-        events: evMap.get(key) ?? [], markers: this.markersFor(key),
+        key, day: d.getDate(), inMonth: this.view() === 'week' || d.getMonth() === month,
+        isToday: key === todayKey, events: evMap.get(key) ?? [], todos: tdMap.get(key) ?? [], markers: this.markersFor(key),
       });
     }
     return cells;
   });
 
   selectedEvents = computed(() => this.eventsByDay().get(this.selected()) ?? []);
+  selectedTodos = computed(() => this.todosByDay().get(this.selected()) ?? []);
   selectedMarkers = computed(() => this.markersFor(this.selected()));
   selectedLabel = computed(() => {
     const d = new Date(this.selected() + 'T00:00:00');
-    const k = this.selected() === dateKey(new Date()) ? '（今天）' : '';
-    return d.toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'long' }) + k;
+    const today = this.selected() === dateKey(new Date()) ? '（今天）' : '';
+    return d.toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'long' }) + today;
   });
 
   ngOnInit() { this.load(); }
 
   async load() {
-    const vm = this.viewMonth();
-    const from = new Date(vm); from.setDate(1 - vm.getDay()); from.setHours(0, 0, 0, 0);
-    const last = new Date(vm.getFullYear(), vm.getMonth() + 1, 0);
-    const to = new Date(last); to.setDate(last.getDate() + (6 - last.getDay())); to.setHours(23, 59, 59);
-    const [events, annivs] = await Promise.all([
+    const [from, to] = this.range();
+    const [events, todos, annivs] = await Promise.all([
       this.api.get<EventItem[]>('/events', { from: from.toISOString(), to: to.toISOString() }),
+      this.api.get<Todo[]>('/todos', { dueFrom: from.toISOString(), dueTo: to.toISOString() }),
       this.api.get<Anniversary[]>('/anniversaries'),
     ]);
     this.events.set(events);
+    this.todos.set(todos);
     this.annivs.set(annivs);
   }
 
-  shiftMonth(delta: number) {
-    const vm = this.viewMonth();
-    this.viewMonth.set(new Date(vm.getFullYear(), vm.getMonth() + delta, 1));
+  setView(v: 'month' | 'week') {
+    if (this.view() === v) return;
+    this.cursor.set(new Date(this.selected() + 'T00:00:00'));
+    this.view.set(v);
+    this.load();
+  }
+  shift(delta: number) {
+    const c = this.cursor();
+    this.cursor.set(this.view() === 'week'
+      ? new Date(c.getFullYear(), c.getMonth(), c.getDate() + delta * 7)
+      : new Date(c.getFullYear(), c.getMonth() + delta, 1));
     this.load();
   }
   goToday() {
-    this.viewMonth.set(startOfMonth(new Date()));
+    this.cursor.set(new Date());
     this.selected.set(dateKey(new Date()));
     this.load();
   }
 
   openCreate() {
     const now = new Date();
+    this.editId.set(null);
     this.f = { title: '', eventType: 'DATE', startTime: pad(now.getHours()) + ':00', endTime: '', allDay: false, locationName: '', description: '' };
-    this.showCreate.set(true);
+    this.showSheet.set(true);
+  }
+  openEdit(e: EventItem) {
+    this.selected.set(dateKey(new Date(e.startTime)));
+    this.editId.set(e.id);
+    const s = new Date(e.startTime);
+    const allDay = s.getHours() === 0 && s.getMinutes() === 0 && !e.endTime;
+    this.f = {
+      title: e.title, eventType: e.eventType, allDay,
+      startTime: allDay ? '' : hhmm(s), endTime: e.endTime ? hhmm(new Date(e.endTime)) : '',
+      locationName: e.locationName ?? '', description: e.description ?? '',
+    };
+    this.showSheet.set(true);
   }
 
-  async create() {
+  async save() {
     if (!this.f.title.trim()) return;
     this.saving.set(true);
     try {
@@ -235,20 +280,21 @@ export class CalendarPage implements OnInit {
       const body: Record<string, unknown> = {
         title: this.f.title.trim(), eventType: this.f.eventType, startTime: start.toISOString(),
         locationName: this.f.locationName || null, description: this.f.description || null,
+        endTime: !this.f.allDay && this.f.endTime ? new Date(this.selected() + 'T' + this.f.endTime + ':00').toISOString() : null,
       };
-      if (!this.f.allDay && this.f.endTime) {
-        body['endTime'] = new Date(this.selected() + 'T' + this.f.endTime + ':00').toISOString();
-      }
-      await this.api.post('/events', body);
-      this.showCreate.set(false);
+      if (this.editId()) await this.api.patch(`/events/${this.editId()}`, body);
+      else await this.api.post('/events', body);
+      this.showSheet.set(false);
       await this.load();
     } finally {
       this.saving.set(false);
     }
   }
 
-  async remove(e: EventItem) {
-    await this.api.del(`/events/${e.id}`);
+  async removeEvent(e: EventItem) { await this.api.del(`/events/${e.id}`); await this.load(); }
+  async toggleTodo(t: Todo) {
+    if (t.status === 'DONE') await this.api.patch(`/todos/${t.id}`, { status: 'PENDING' });
+    else await this.api.post(`/todos/${t.id}/complete`);
     await this.load();
   }
 
@@ -257,11 +303,25 @@ export class CalendarPage implements OnInit {
   timeRange(e: EventItem) {
     const s = new Date(e.startTime);
     if (s.getHours() === 0 && s.getMinutes() === 0 && !e.endTime) return '整天';
-    const t = (d: Date) => d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
-    return e.endTime ? `${t(s)}–${t(new Date(e.endTime))}` : t(s);
+    return e.endTime ? `${hhmm(s)}–${hhmm(new Date(e.endTime))}` : hhmm(s);
+  }
+  todoTime(t: Todo) {
+    if (!t.dueDate) return '';
+    const d = new Date(t.dueDate);
+    return d.getHours() === 0 && d.getMinutes() === 0 ? '整天' : hhmm(d);
   }
 }
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
+function hhmm(d: Date) { return d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }); }
 function dateKey(d: Date) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
-function startOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function groupByDay<T>(items: T[], getIso: (x: T) => string | undefined): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const it of items) {
+    const iso = getIso(it);
+    if (!iso) continue;
+    const k = dateKey(new Date(iso));
+    (map.get(k) ?? map.set(k, []).get(k)!).push(it);
+  }
+  return map;
+}

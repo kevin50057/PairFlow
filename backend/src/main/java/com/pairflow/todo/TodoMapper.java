@@ -29,7 +29,7 @@ public class TodoMapper {
                 t.getId(), t.getCoupleId(), t.getTitle(), t.getDescription(),
                 t.getType().name(), t.getStatus().name(), t.getPriority().name(),
                 relativeAssignee(t, viewerId), t.getAssigneeUserId(), t.isAssignedToBoth(),
-                t.getDueDate(), t.getReminderTime(), t.getRepeatRule(),
+                t.getDueDate(), t.getReminderTime(), t.isAutoComplete(), t.getRepeatRule(),
                 t.isSecret(), t.getSecretUnlockAt(),
                 t.getRelatedEventId(), t.getRelatedAnniversaryId(),
                 t.getGoalTarget(), t.getGoalCurrent(), t.getGoalUnit(),

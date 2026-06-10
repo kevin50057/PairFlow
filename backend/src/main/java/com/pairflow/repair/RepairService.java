@@ -122,7 +122,7 @@ public class RepairService {
             }
             CreateTodoRequest todoReq = new CreateTodoRequest(
                     task.trim(), "來自修復對話的後續", TodoType.GENERAL, Priority.MEDIUM, AssigneeOption.BOTH,
-                    null, null, null, null, null, null, null, null, null, null, null);
+                    null, null, false, null, null, null, null, null, null, null, null, null);
             created.add(todoService.create(todoReq));
         }
         if (s.getStatus() == RepairStatus.RESPONDED) {

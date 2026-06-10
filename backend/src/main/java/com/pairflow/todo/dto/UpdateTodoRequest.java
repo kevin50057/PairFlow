@@ -18,6 +18,7 @@ public record UpdateTodoRequest(
         AssigneeOption assignee,
         Instant dueDate,
         Instant reminderTime,
+        Boolean autoComplete,
         String repeatRule,
         Boolean isSecret,
         Instant secretUnlockAt,

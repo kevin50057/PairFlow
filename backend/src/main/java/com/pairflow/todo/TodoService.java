@@ -107,6 +107,7 @@ public class TodoService {
         applyAssignee(t, req.assignee(), me, partnerId);
         t.setDueDate(req.dueDate());
         t.setReminderTime(req.reminderTime());
+        t.setAutoComplete(Boolean.TRUE.equals(req.autoComplete()) && req.dueDate() != null);
         t.setRepeatRule(req.repeatRule());
         t.setSecret(Boolean.TRUE.equals(req.isSecret()) || t.getType() == TodoType.SURPRISE);
         t.setSecretUnlockAt(req.secretUnlockAt());
@@ -158,6 +159,7 @@ public class TodoService {
         if (req.assignee() != null) applyAssignee(t, req.assignee(), me, partnerId);
         if (req.dueDate() != null) t.setDueDate(req.dueDate());
         if (req.reminderTime() != null) t.setReminderTime(req.reminderTime());
+        if (req.autoComplete() != null) t.setAutoComplete(req.autoComplete());
         if (req.repeatRule() != null) t.setRepeatRule(req.repeatRule());
         if (req.isSecret() != null) t.setSecret(req.isSecret());
         if (req.secretUnlockAt() != null) t.setSecretUnlockAt(req.secretUnlockAt());

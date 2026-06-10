@@ -96,7 +96,7 @@ public class WishService {
         Wish w = load(id);
         CreateTodoRequest todoReq = new CreateTodoRequest(
                 w.getTitle(), w.getDescription(), TodoType.GENERAL, w.getPriority(), AssigneeOption.BOTH,
-                null, null, null, null, null, null, null, null, null, null, null);
+                null, null, false, null, null, null, null, null, null, null, null, null);
         TodoResponse todo = todoService.create(todoReq);
         w.setConvertedTodoId(todo.id());
         return todo;

@@ -129,7 +129,7 @@ public class DatePlanService {
             for (String task : prepTasks(plan.getDateType())) {
                 CreateTodoRequest todoReq = new CreateTodoRequest(
                         task, null, TodoType.DATE, Priority.MEDIUM, AssigneeOption.BOTH,
-                        req.startTime(), null, null, null, null, event.id(), null, null, null, null, null);
+                        req.startTime(), null, false, null, null, null, event.id(), null, null, null, null, null);
                 todoService.create(todoReq);
             }
         }

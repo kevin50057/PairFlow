@@ -17,4 +17,7 @@ public interface TodoRepository extends JpaRepository<Todo, String>, JpaSpecific
 
     /** Used by the scheduler to find globally due todos across all couples. */
     List<Todo> findByStatusAndDueDateBetween(TodoStatus status, Instant from, Instant to);
+
+    /** Auto-complete: scheduled todos whose due time has already passed. */
+    List<Todo> findByStatusAndAutoCompleteTrueAndDueDateLessThanEqual(TodoStatus status, Instant time);
 }

@@ -50,6 +50,12 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
             </select>
             <input class="input" type="datetime-local" name="due" [(ngModel)]="f.dueDate" />
           </div>
+          @if (f.dueDate) {
+            <label class="row auto-row" style="gap:8px">
+              <input type="checkbox" name="auto" [(ngModel)]="f.autoComplete" />
+              <span>⏱ 到時間自動完成（會顯示在行事曆上）</span>
+            </label>
+          }
           <div class="row">
             <button class="btn btn-primary grow" (click)="create()"><svg lucidePlus size="18"></svg>新增</button>
             <button class="btn btn-outline" (click)="showCreate.set(false)"><svg lucideX size="18"></svg>取消</button>
@@ -79,6 +85,7 @@ import { CoupleAvatar } from '../../shared/couple-avatar';
                   <div class="row tiny" style="margin-top:4px;gap:6px">
                     <span class="tag">{{ assignee(t) }}</span>
                     @if (t.dueDate) { <span class="muted">截止 {{ date(t.dueDate) }}</span> }
+                    @if (t.autoComplete) { <span class="auto-badge">⏱ 自動</span> }
                     @if (t.priority === 'HIGH') { <span style="color:var(--danger)">· 高</span> }
                   </div>
                   @if (t.type === 'GOAL' && t.goalTarget) {
@@ -109,7 +116,7 @@ export class TodosPage implements OnInit {
   todos = signal<Todo[]>([]);
   loading = signal(false);
   showCreate = signal(false);
-  f = { title: '', type: 'GENERAL', assignee: 'BOTH', priority: 'MEDIUM', dueDate: '' };
+  f = { title: '', type: 'GENERAL', assignee: 'BOTH', priority: 'MEDIUM', dueDate: '', autoComplete: false };
   todayLabel = new Date().toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', weekday: 'long' });
 
   ngOnInit() { this.load(); }
@@ -143,9 +150,12 @@ export class TodosPage implements OnInit {
     const body: Record<string, unknown> = {
       title: this.f.title.trim(), type: this.f.type, assignee: this.f.assignee, priority: this.f.priority,
     };
-    if (this.f.dueDate) body['dueDate'] = new Date(this.f.dueDate).toISOString();
+    if (this.f.dueDate) {
+      body['dueDate'] = new Date(this.f.dueDate).toISOString();
+      body['autoComplete'] = this.f.autoComplete;
+    }
     await this.api.post('/todos', body);
-    this.f = { title: '', type: 'GENERAL', assignee: 'BOTH', priority: 'MEDIUM', dueDate: '' };
+    this.f = { title: '', type: 'GENERAL', assignee: 'BOTH', priority: 'MEDIUM', dueDate: '', autoComplete: false };
     this.showCreate.set(false);
     this.load();
   }

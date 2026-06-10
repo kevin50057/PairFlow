@@ -17,6 +17,7 @@ public record TodoResponse(
         boolean assignedToBoth,
         Instant dueDate,
         Instant reminderTime,
+        boolean autoComplete,
         String repeatRule,
         boolean isSecret,
         Instant secretUnlockAt,
